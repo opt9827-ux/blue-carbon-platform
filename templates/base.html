@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Blue Carbon Platform{% endblock %}</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap/Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-[#0F172A] font-['Inter'] text-slate-200 antialiased selection:bg-emerald-500/30">
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside
+            class="w-72 bg-[#1E293B] border-r border-white/5 flex-shrink-0 transition-all duration-300 hidden md:flex flex-col z-20 shadow-2xl">
+            <div class="p-8">
+                <div class="flex items-center gap-4 group cursor-pointer">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-leaf text-white text-lg"></i>
+                    </div>
+                    <span class="text-2xl font-black tracking-tight text-white uppercase italic">BlueCarbon</span>
+                </div>
+            </div>
+
+            <nav class="mt-6 flex-1 px-4 space-y-1">
+                {% if current_user.is_authenticated %}
+                {% if current_user.role == 'farmer' %}
+                <a href="{{ url_for('farmer_dashboard') }}"
+                    class="sidebar-link {% if request.endpoint == 'farmer_dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line w-6"></i> Dashboard
+                </a>
+                <a href="{{ url_for('map_tool') }}"
+                    class="sidebar-link {% if request.endpoint == 'map_tool' %}active{% endif %}">
+                    <i class="fas fa-map-marked-alt w-6"></i> Register Land
+                </a>
+                <a href="{{ url_for('my_lands') }}"
+                    class="sidebar-link {% if request.endpoint == 'my_lands' %}active{% endif %}">
+                    <i class="fas fa-seedling w-6"></i> My Lands
+                </a>
+                {% elif current_user.role == 'company' %}
+                <a href="{{ url_for('company_dashboard') }}"
+                    class="sidebar-link {% if request.endpoint == 'company_dashboard' %}active{% endif %}">
+                    <i class="fas fa-building w-6"></i> Dashboard
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-shopping-cart w-6"></i> Marketplace
+                </a>
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-history w-6"></i> Purchase History
+                </a>
+                {% endif %}
+
+                <a href="#" class="sidebar-link">
+                    <i class="fas fa-user-circle w-6"></i> Profile
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="p-6 border-t border-white/5 bg-slate-900/50">
+                <a href="{{ url_for('logout') }}"
+                    class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-red-500/10 rounded-xl transition-all duration-300">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="font-bold text-sm tracking-wide uppercase">Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+            <!-- Glass Header -->
+            <header
+                class="bg-[#1E293B]/80 backdrop-blur-md border-b border-white/5 h-20 flex items-center justify-between px-10 z-10 sticky top-0">
+                <div>
+                    <h1 class="text-xl font-black text-white uppercase tracking-wider">{% block header_title
+                        %}Overview{% endblock %}</h1>
+                    <p class="text-xs text-slate-500 font-medium">Monitoring Planet Health & Carbon Assets</p>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex flex-col items-end">
+                        <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Connected Node</span>
+                        <span class="text-sm text-emerald-400 font-mono">{{ current_user.email }}</span>
+                    </div>
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 shadow-inner group hover:border-emerald-500/50 transition-colors">
+                        <i class="fas fa-user group-hover:text-emerald-400 transition-colors"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="flex-1 overflow-y-auto p-10 space-y-8">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div
+                    class="p-4 rounded-2xl glass border-emerald-500/30 text-emerald-400 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+                    <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="font-bold text-sm">{{ message }}</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Global Counters Script -->
+    <script>
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const counters = document.querySelectorAll('.animate-counter');
+            counters.forEach(c => {
+                const target = parseInt(c.innerText.replace(/,/g, ''));
+                animateValue(c, 0, target, 1500);
+            });
+        });
+    </script>
+</body>
+
+</html>

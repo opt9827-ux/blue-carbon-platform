@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Farmer Dashboard | BlueCarbon{% endblock %}
+{% block header_title %}Farmer Command{% endblock %}
+
+{% block content %}
+<!-- Summary Matrix -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+    <div class="card bg-gradient-to-br from-[#1E293B] to-[#0F172A] border-emerald-500/20">
+        <div class="flex justify-between items-start mb-4">
+            <div
+                class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                <i class="fas fa-droplet"></i>
+            </div>
+            <span
+                class="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg tracking-widest">+12.4%</span>
+        </div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Carbon Credits</p>
+        <h3 class="text-3xl font-black text-white"><span class="animate-counter">{{ total_credits }}</span> <span
+                class="text-sm font-normal text-slate-500">Tons</span></h3>
+    </div>
+
+    <div class="card bg-gradient-to-br from-[#1E293B] to-[#0F172A] border-indigo-500/20">
+        <div class="flex justify-between items-start mb-4">
+            <div
+                class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                <i class="fas fa-map-location-dot"></i>
+            </div>
+        </div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Registered Plots</p>
+        <h3 class="text-3xl font-black text-white"><span class="animate-counter">{{ validations|length }}</span></h3>
+    </div>
+
+    <div class="card bg-gradient-to-br from-[#1E293B] to-[#0F172A] border-amber-500/20">
+        <div class="flex justify-between items-start mb-4">
+            <div
+                class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
+            {% set pending = validations|selectattr('status', 'equalto', 'listed')|list|length %}
+            <span
+                class="text-[10px] font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg tracking-widest">ACTIVE</span>
+        </div>
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Pending Validations</p>
+        <h3 class="text-3xl font-black text-white"><span class="animate-counter">{{ pending }}</span></h3>
+    </div>
+
+    <div onclick="location.href='{{ url_for('map_tool') }}'"
+        class="card border-dashed border-emerald-500/30 flex flex-col justify-center items-center group cursor-pointer hover:bg-emerald-500/5 transition-all">
+        <div
+            class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-emerald-500/20 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">
+            <i class="fas fa-plus"></i>
+        </div>
+        <span class="mt-4 font-black uppercase text-xs tracking-[0.2em] text-emerald-500">Register New Plot</span>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Active Grid -->
+    <div class="lg:col-span-2 space-y-8">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-black text-white uppercase tracking-wider">Recent Telemetry</h3>
+            <a href="{{ url_for('my_lands') }}"
+                class="text-xs font-bold text-emerald-500 hover:text-emerald-400 uppercase tracking-widest">Access All
+                Assets</a>
+        </div>
+
+        <div class="bg-[#1E293B] rounded-[2rem] border border-white/5 overflow-hidden shadow-2xl">
+            <table class="w-full text-left">
+                <thead class="bg-slate-900/50 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+                    <tr>
+                        <th class="px-8 py-5">Node ID</th>
+                        <th class="px-8 py-5">Cycle Period</th>
+                        <th class="px-8 py-5">Credits</th>
+                        <th class="px-8 py-5">Status</th>
+                        <th class="px-8 py-5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for v in validations[:5] %}
+                    <tr class="group hover:bg-white/[0.02] transition-colors">
+                        <td
+                            class="px-8 py-6 font-mono text-sm text-slate-400 group-hover:text-emerald-400 transition-colors">
+                            #0x{{ v.id }}</td>
+                        <td class="px-8 py-6 text-[11px] font-bold text-slate-500 uppercase tracking-tighter">{{
+                            v.start_date }} <i class="fas fa-arrow-right mx-1 text-slate-700"></i> {{ v.end_date }}</td>
+                        <td class="px-8 py-6 font-black text-white">{{ v.credits }} <span
+                                class="text-[10px] text-slate-600">tCO2e</span></td>
+                        <td class="px-8 py-6">
+                            {% if v.status == 'sold' %}
+                            <span class="status-badge status-sold">Synced</span>
+                            {% else %}
+                            <span class="status-badge status-listed">Staged</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <a href="/land/{{ v.id }}" class="text-slate-600 hover:text-white transition-colors">
+                                <i class="fas fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sidebar Stats -->
+    <div class="space-y-8">
+        <div class="card glass border-indigo-500/20 shadow-indigo-500/10">
+            <h4
+                class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-6 underline decoration-indigo-500/30 underline-offset-8">
+                Network Impact</h4>
+            <div class="space-y-6">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-center text-emerald-400">
+                        <i class="fas fa-seedling text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Trees
+                            Offset</span>
+                        <span class="text-xl font-black text-white">42.8K</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-center text-blue-400">
+                        <i class="fas fa-water text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="block text-[10px] font-black text-slate-500 uppercase tracking-widest">H2O
+                            Conserved</span>
+                        <span class="text-xl font-black text-white">125ML</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="card border-0 bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-xl shadow-emerald-500/10">
+            <h4 class="font-black uppercase tracking-widest text-[10px] text-white/60 mb-2">Market Alert</h4>
+            <p class="text-sm font-bold leading-relaxed mb-4">Carbon Index (tCO2e) hit an all-time high of <span
+                    class="px-2 py-0.5 bg-black/20 rounded font-black">$24.50</span></p>
+            <div class="h-1 bg-white/20 rounded-full overflow-hidden">
+                <div class="h-full bg-white w-2/3 animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

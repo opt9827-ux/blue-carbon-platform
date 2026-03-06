@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialize Identity | BlueCarbon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0F172A;
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body class="flex min-h-screen bg-[#0F172A] text-slate-200 lg:p-6 italic:selection:bg-emerald-500/30">
+    <!-- Left panel -->
+    <div
+        class="hidden lg:flex w-5/12 bg-slate-900 m-4 rounded-[3rem] p-16 flex-col justify-between text-white relative overflow-hidden shadow-2xl border border-white/5">
+        <div class="z-10">
+            <div class="flex items-center gap-4 mb-20 group cursor-pointer">
+                <div
+                    class="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:rotate-12 transition-transform">
+                    <i class="fas fa-leaf text-white text-xl"></i>
+                </div>
+                <span class="text-3xl font-black tracking-tighter uppercase italic">BlueCarbon</span>
+            </div>
+
+            <h2 class="text-6xl font-black leading-[0.9] mb-10 uppercase tracking-tighter">Verified <br /><span
+                    class="text-emerald-500">Planet</span> <br />Assets.</h2>
+            <p class="text-slate-400 text-lg font-medium leading-relaxed max-w-sm mb-12">Universal MRV protocol for blue
+                carbon ecosystems using deep satellite telemetry.</p>
+
+            <div class="inline-flex items-center gap-4 p-5 glass rounded-[2rem]">
+                <div class="flex -space-x-3">
+                    <div
+                        class="w-12 h-12 rounded-full border-4 border-slate-900 bg-emerald-500 flex items-center justify-center text-xs font-bold text-white shadow-xl">
+                        JP</div>
+                    <div
+                        class="w-12 h-12 rounded-full border-4 border-slate-900 bg-indigo-500 flex items-center justify-center text-xs font-bold text-white shadow-xl">
+                        KS</div>
+                    <div
+                        class="w-12 h-12 rounded-full border-4 border-slate-900 bg-slate-700 flex items-center justify-center text-xs font-bold text-white shadow-xl">
+                        +</div>
+                </div>
+                <div class="pr-6">
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Network
+                        Capacity</p>
+                    <p class="text-sm font-black text-white">4,200+ NODES ACTIVE</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Abstract BG patterns -->
+        <div class="absolute -bottom-48 -right-48 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute -top-48 -left-48 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="flex-1 flex items-center justify-center p-8 md:p-12 lg:p-16 overflow-y-auto">
+        <div class="w-full max-w-md">
+            <div class="mb-12 lg:hidden flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="fas fa-leaf text-white text-lg"></i>
+                </div>
+                <span class="text-2xl font-black text-white italic tracking-tighter uppercase">BlueCarbon</span>
+            </div>
+
+            <div class="mb-12">
+                <h1 class="text-4xl font-black text-white uppercase tracking-tighter mb-2 italic">Initialize</h1>
+                <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Create your secure registry
+                    identity</p>
+            </div>
+
+            <form action="{{ url_for('signup') }}" method="POST" class="space-y-8">
+                <div>
+                    <label
+                        class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Terminal
+                        ID (Email)</label>
+                    <input type="email" name="email" required placeholder="name@telemetry.net"
+                        class="w-full p-5 bg-slate-900/50 border border-white/5 rounded-2xl text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-800 font-medium">
+                </div>
+
+                <div>
+                    <label
+                        class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Universal
+                        Key (Password)</label>
+                    <input type="password" name="password" required placeholder="••••••••"
+                        class="w-full p-5 bg-slate-900/50 border border-white/5 rounded-2xl text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-800 font-medium">
+                </div>
+
+                <div>
+                    <label
+                        class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3 ml-1">Operational
+                        Role</label>
+                    <div class="relative">
+                        <select name="role" required
+                            class="w-full p-5 bg-slate-900/50 border border-white/5 rounded-2xl text-white appearance-none focus:ring-2 focus:ring-emerald-500 outline-none transition-all cursor-pointer font-bold uppercase text-xs tracking-widest">
+                            <option value="farmer">Farmer (Land Registry Node)</option>
+                            <option value="company">Company (Capital Flow Node)</option>
+                        </select>
+                        <i
+                            class="fas fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none"></i>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit"
+                        class="w-full py-5 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-black uppercase tracking-[0.2em] text-sm rounded-2xl shadow-xl shadow-indigo-500/20 transform hover:scale-[1.02] active:scale-95 transition-all">
+                        Create Terminal
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-12 text-center">
+                <p class="text-xs text-slate-500 font-bold uppercase tracking-widest">
+                    Existing Node?
+                    <a href="{{ url_for('login') }}"
+                        class="text-indigo-400 hover:text-indigo-300 transition-colors font-black ml-2 underline decoration-indigo-500/30 underline-offset-4">Connect
+                        Identity</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

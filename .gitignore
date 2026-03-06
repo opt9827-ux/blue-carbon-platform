@@ -1,0 +1,14 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Database
+*.db
+instance/
+
+# Secrets
+service_account_key.json
+.env
+
+# Models
+*.h5

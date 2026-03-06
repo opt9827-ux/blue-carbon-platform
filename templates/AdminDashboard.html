@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Registry Admin | BlueCarbon{% endblock %}
+{% block header_title %}System Governance{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+    <div class="card border-l-4 border-emerald-500 bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Network Sequestered</p>
+        <h3 class="text-3xl font-black text-white"><span class="animate-counter">{{ total_credits }}</span> <span
+                class="text-sm font-normal text-slate-500">Tons</span></h3>
+        <p class="mt-4 text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Global Aggregate</p>
+    </div>
+    <div class="card border-l-4 border-indigo-500 bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Verified Nodes</p>
+        <h3 class="text-3xl font-black text-white"><span class="animate-counter">{{ total_farmers }}</span></h3>
+        <p class="mt-4 text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Active Farmers</p>
+    </div>
+    <div class="card border-l-4 border-amber-500 bg-gradient-to-br from-[#1E293B] to-[#0F172A]">
+        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Total Cycles</p>
+        <h3 class="text-3xl font-black text-white"><span class="animate-counter">{{ validations|length }}</span></h3>
+        <p class="mt-4 text-[10px] font-bold text-amber-500 uppercase tracking-widest">Validations Run</p>
+    </div>
+</div>
+
+<div class="card !p-0 overflow-hidden border-white/5 shadow-2xl">
+    <div class="p-8 border-b border-white/5 bg-slate-900/50 flex justify-between items-center">
+        <h3 class="font-black text-white text-lg uppercase tracking-tighter italic">Global Registry Ledger</h3>
+        <div class="flex gap-4">
+            <button
+                class="px-6 py-2.5 glass border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all">Audit
+                Logs</button>
+            <button
+                class="px-6 py-2.5 bg-emerald-600/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 hover:text-white transition-all border border-emerald-500/20">Sync
+                Chain</button>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-slate-900/80 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+                <tr>
+                    <th class="px-8 py-5">Node Hash</th>
+                    <th class="px-8 py-5">Originator</th>
+                    <th class="px-8 py-5">Period</th>
+                    <th class="px-8 py-5">Yield</th>
+                    <th class="px-8 py-5">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for v in validations %}
+                <tr class="group hover:bg-white/[0.02] transition-colors">
+                    <td
+                        class="px-8 py-6 font-mono text-sm text-slate-400 group-hover:text-emerald-400 transition-colors">
+                        #0x{{ v.id }}</td>
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
+                                <i class="fas fa-user text-[10px]"></i>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-200">User #{{ v.user_id }}</span>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">{{
+                        v.start_date }} <i class="fas fa-chevron-right mx-1 opacity-20"></i> {{ v.end_date }}</td>
+                    <td class="px-8 py-6 font-black text-white">{{ v.credits }} <span
+                            class="text-[10px] font-normal text-slate-600">tCO2e</span></td>
+                    <td class="px-8 py-6">
+                        {% if v.status == 'sold' %}
+                        <span class="status-badge status-sold shadow-lg shadow-indigo-500/10">Transferred</span>
+                        {% else %}
+                        <span class="status-badge status-listed shadow-lg shadow-emerald-500/10">Escrow</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

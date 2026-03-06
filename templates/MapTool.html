@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Register Land | BlueCarbon{% endblock %}
+{% block header_title %}Land Registration Tool{% endblock %}
+
+{% block extra_head %}
+<!-- Leaflet & Draw -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@0.4.14/dist/leaflet.draw.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-draw@0.4.14/dist/leaflet.draw.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .leaflet-bar {
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .leaflet-bar a {
+        background-color: #1E293B !important;
+        color: #94A3B8 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .leaflet-bar a:hover {
+        background-color: #334155 !important;
+        color: white !important;
+    }
+
+    .leaflet-draw-toolbar-top {
+        border-radius: 12px 12px 0 0 !important;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-10 h-[calc(100vh-280px)]">
+    <!-- Map Canvas -->
+    <div class="lg:col-span-3 relative group">
+        <div id="map" class="h-full w-full rounded-[2rem] shadow-2xl border border-white/5 overflow-hidden"></div>
+
+        <!-- Glassmorphism Stats Panel -->
+        <div id="area-panel"
+            class="hidden map-stats-panel glass border-emerald-500/20 animate-in fade-in slide-in-from-top-4">
+            <div class="flex items-center gap-3 mb-4">
+                <div id="status-icon"
+                    class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/20 text-amber-500">
+                    <i class="fas fa-draw-polygon"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase font-black text-slate-500 tracking-widest">Detected Geometry</p>
+                    <h4 id="status-text" class="text-sm font-bold text-white">Calculating...</h4>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex justify-between items-end border-b border-white/5 pb-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Hectares</span>
+                    <span id="area-ha" class="text-2xl font-black text-emerald-400">0.00</span>
+                </div>
+                <div class="flex justify-between items-end">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Acres</span>
+                    <span id="area-ac" class="text-lg font-bold text-indigo-400">0.00</span>
+                </div>
+            </div>
+
+            <div id="feedback-alert" class="mt-4 p-3 rounded-xl text-[11px] font-bold italic hidden">
+                <i class="fas fa-exclamation-triangle mr-2"></i> <span></span>
+            </div>
+        </div>
+
+        <!-- Overlays Controls -->
+        <div class="absolute bottom-8 left-8 z-[1000] flex flex-col gap-3">
+            <button id="toggle-layer"
+                class="w-12 h-12 glass rounded-xl flex items-center justify-center text-slate-300 hover:text-emerald-400 cursor-pointer shadow-xl transition-all hover:scale-110 active:scale-95"
+                title="Toggle Satellite">
+                <i class="fas fa-globe-asia text-lg"></i>
+            </button>
+            <button id="toggle-heatmap"
+                class="w-12 h-12 glass rounded-xl flex items-center justify-center text-slate-300 hover:text-amber-400 cursor-pointer shadow-xl transition-all hover:scale-110 active:scale-95"
+                title="Carbon Heatmap">
+                <i class="fas fa-fire-alt text-lg"></i>
+            </button>
+            <button id="reset-map"
+                class="w-12 h-12 glass rounded-xl flex items-center justify-center text-slate-300 hover:text-red-400 cursor-pointer shadow-xl transition-all hover:scale-110 active:scale-95 border-red-500/20"
+                title="Reset Selection">
+                <i class="fas fa-trash-alt text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Registration Sidebar -->
+    <div class="space-y-8 h-full flex flex-col">
+        <div class="card flex-1 border-white/10 shadow-emerald-900/10">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-satellite-dish"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-white uppercase tracking-tighter">Plot Specs</h3>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">MRV Protocol v2.4</p>
+                </div>
+            </div>
+
+            <form id="validate-form" class="space-y-8 h-full flex flex-col">
+                <input type="hidden" id="coords" name="coords">
+
+                <div class="space-y-6 flex-1">
+                    <div class="group">
+                        <label
+                            class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 group-focus-within:text-emerald-400 transition-colors">Start
+                            Date</label>
+                        <input type="date" name="start_date" required
+                            class="w-full p-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-700">
+                    </div>
+                    <div class="group">
+                        <label
+                            class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 group-focus-within:text-emerald-400 transition-colors">End
+                            Date</label>
+                        <input type="date" name="end_date" required
+                            class="w-full p-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-700">
+                    </div>
+                </div>
+
+                <div class="pt-8">
+                    <button type="submit" id="submit-btn" disabled
+                        class="w-full py-5 btn-primary opacity-50 cursor-not-allowed justify-center shadow-emerald-500/20 hover:shadow-emerald-500/40">
+                        <i class="fas fa-microchip animate-pulse"></i>
+                        <span class="uppercase tracking-widest font-black text-sm">Initiate Validation</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="p-6 glass rounded-[2rem] border-blue-500/20">
+            <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Constraints</h4>
+            <div class="space-y-3">
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-4 h-4 bg-emerald-500/20 text-emerald-400 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-check text-[8px]"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-relaxed font-medium">Min: <span
+                            class="text-white font-bold">10 Ha</span> (Threshold for model accuracy)</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div
+                        class="w-4 h-4 bg-red-500/20 text-red-400 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-times text-[8px]"></i>
+                    </div>
+                    <p class="text-[11px] text-slate-400 leading-relaxed font-medium">Max: <span
+                            class="text-white font-bold">5000 Ha</span> (System processing limit)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Layers
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        className: 'map-slate-filter' // Custom CSS filter can be added
+    });
+
+    const worldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    });
+
+    const heatPoints = [
+        [17.21, 78.27, 0.5], [17.22, 78.28, 0.8], [17.23, 78.26, 0.3], [17.19, 78.25, 0.9]
+    ];
+    const heatLayer = L.heatLayer(heatPoints, { radius: 40, blur: 15, gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'yellow' } });
+
+    // Initialize Map
+    const map = L.map('map', {
+        center: [17.21, 78.27],
+        zoom: 13,
+        layers: [osm],
+        zoomControl: false,
+        animate: true,
+        duration: 0.8
+    });
+
+    L.control.zoom({ position: 'topleft' }).addTo(map);
+
+    // Layer Toggle
+    let isSatellite = false;
+    document.getElementById('toggle-layer').addEventListener('click', (e) => {
+        if (isSatellite) { map.removeLayer(worldImagery); map.addLayer(osm); }
+        else { map.removeLayer(osm); map.addLayer(worldImagery); }
+        isSatellite = !isSatellite;
+        e.currentTarget.classList.toggle('text-emerald-400');
+    });
+
+    let isHeatmap = false;
+    document.getElementById('toggle-heatmap').addEventListener('click', (e) => {
+        if (isHeatmap) map.removeLayer(heatLayer);
+        else map.addLayer(heatLayer);
+        isHeatmap = !isHeatmap;
+        e.currentTarget.classList.toggle('text-amber-400');
+    });
+
+    const editableLayers = new L.FeatureGroup();
+    map.addLayer(editableLayers);
+
+    const drawControl = new L.Control.Draw({
+        draw: {
+            polygon: {
+                allowIntersection: false,
+                icon: new L.DivIcon({ iconSize: [12, 12], className: 'leaflet-div-icon leaflet-editing-icon bg-emerald-500 rounded-full border-2 border-white' }),
+                shapeOptions: { color: '#10b981', fillOpacity: 0.3, weight: 3 }
+            },
+            polyline: false, rectangle: true, circle: false, marker: false, circlemarker: false
+        },
+        edit: { featureGroup: editableLayers, remove: true }
+    });
+    map.addControl(drawControl);
+
+    // Geometry Calculation
+    function updateValidation(layer) {
+        let latlngs = layer.getLatLngs();
+        if (layer instanceof L.Rectangle) latlngs = [latlngs[0]];
+
+        const areaSqMeters = L.GeometryUtil.geodesicArea(latlngs[0]);
+        const ha = areaSqMeters / 10000;
+        const ac = ha * 2.471;
+
+        document.getElementById('area-panel').classList.remove('hidden');
+        document.getElementById('area-ha').innerText = ha.toFixed(2);
+        document.getElementById('area-ac').innerText = ac.toFixed(2);
+        document.getElementById('coords').value = JSON.stringify(layer.toGeoJSON().geometry.coordinates);
+
+        const alertDiv = document.getElementById('feedback-alert');
+        const iconDiv = document.getElementById('status-icon');
+        const statusText = document.getElementById('status-text');
+        const submitBtn = document.getElementById('submit-btn');
+
+        alertDiv.classList.remove('hidden');
+
+        if (ha < 10) {
+            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-red-500/10 text-red-400 border border-red-500/20";
+            alertDiv.querySelector('span').innerText = "Plot too small! 10 Ha required.";
+            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/20 text-red-500";
+            statusText.innerText = "Invalid Area";
+            updateBtn(false);
+        } else if (ha > 5000) {
+            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            alertDiv.querySelector('span').innerText = "Plot too large! 5000 Ha limit.";
+            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/20 text-amber-500";
+            statusText.innerText = "Limit Exceeded";
+            updateBtn(false);
+        } else {
+            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            alertDiv.querySelector('span').innerText = "Ready for AI analysis.";
+            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400";
+            statusText.innerText = "Optimal Plot";
+            updateBtn(true);
+        }
+    }
+
+    map.on(L.Draw.Event.CREATED, (e) => {
+        editableLayers.clearLayers();
+        editableLayers.addLayer(e.layer);
+        updateValidation(e.layer);
+    });
+
+    map.on(L.Draw.Event.EDITED, (e) => {
+        e.layers.eachLayer(layer => updateValidation(layer));
+    });
+
+    document.getElementById('reset-map').addEventListener('click', () => {
+        editableLayers.clearLayers();
+        document.getElementById('area-panel').classList.add('hidden');
+        document.getElementById('coords').value = "";
+        updateBtn(false);
+    });
+
+    function updateBtn(isValid) {
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = !isValid;
+        btn.style.opacity = isValid ? '1' : '0.5';
+        btn.style.cursor = isValid ? 'pointer' : 'not-allowed';
+    }
+
+    // Submission Logic
+    document.getElementById('validate-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const { value: confirm } = await Swal.fire({
+            title: 'Verify Project?',
+            text: "Satellite MRV validation will begin immediately.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#059669',
+            cancelButtonColor: '#1E293B',
+            confirmButtonText: 'Yes, start AI sync',
+            background: '#1E293B',
+            color: '#F8FAFC'
+        });
+
+        if (!confirm) return;
+
+        const formData = new FormData(e.target);
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-satellite fa-spin"></i> SYNCING...';
+
+        try {
+            const res = await fetch("{{ url_for('validate') }}", { method: 'POST', body: formData });
+            const result = await res.json();
+
+            if (result.success) {
+                Swal.fire({ icon: 'success', title: 'Mission Success', text: result.message, background: '#1E293B', color: '#F8FAFC' })
+                    .then(() => window.location.href = "{{ url_for('my_lands') }}");
+            } else {
+                Swal.fire({ icon: 'error', title: 'Sync Error', text: result.error, background: '#1E293B', color: '#F8FAFC' });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-microchip"></i> RE-INITIATE SYNC';
+            }
+        } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Network Failure', text: "Satellite link interrupted.", background: '#1E293B', color: '#F8FAFC' });
+            submitBtn.disabled = false;
+        }
+    };
+
+    // L.GeometryUtil Shim
+    if (!L.GeometryUtil) {
+        L.GeometryUtil = {
+            geodesicArea: function (latLngs) {
+                var pointsCount = latLngs.length, area = 0.0, d2r = Math.PI / 180, p1, p2;
+                if (pointsCount > 2) {
+                    for (var i = 0; i < pointsCount; i++) {
+                        p1 = latLngs[i]; p2 = latLngs[(i + 1) % pointsCount];
+                        area += ((p2.lng - p1.lng) * d2r) * (2 + Math.sin(p1.lat * d2r) + Math.sin(p2.lat * d2r));
+                    }
+                    area = area * 6378137.0 * 6378137.0 / 2.0;
+                }
+                return Math.abs(area);
+            }
+        };
+    }
+</script>
+{% endblock %}
