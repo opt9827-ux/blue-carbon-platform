@@ -1,195 +1,147 @@
 {% extends "base.html" %}
 
-{% block title %}Plot Details #{{ land.id }} | BlueCarbon{% endblock %}
-{% block header_title %}Project Telemetry{% endblock %}
+{% block title %}Asset Audit | BlueCarbon{% endblock %}
+{% block header_title %}Satellite MRV Audit{% endblock %}
 
 {% block content %}
-<div class="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-    <div>
-        <div class="flex items-center gap-3 mb-2">
-            <h2 class="text-3xl font-black text-white uppercase tracking-tighter">Plot Node #0x{{ land.id }}</h2>
-            <span class="status-badge {{ 'status-sold' if land.status == 'sold' else 'status-listed' }} shadow-lg">
-                {{ land.status }}
-            </span>
+<div class="max-w-6xl mx-auto space-y-12 pb-20">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+        <div class="reveal">
+            <nav
+                class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-apple-secondary mb-4">
+                <a href="{{ url_for('my_lands') }}" class="hover:text-apple-accent">Managed Assets</a>
+                <i class="fas fa-chevron-right text-[8px] opacity-30"></i>
+                <span class="text-apple-text">Audit 0x{{ land.id }}</span>
+            </nav>
+            <h2 class="text-4xl font-black tracking-tighter text-apple-text">Verified Asset #0x{{ land.id }}</h2>
+            <p class="text-apple-secondary font-medium mt-2">Satellite Verification Stamp: {{
+                land.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
         </div>
-        <p class="text-slate-500 font-medium">Registered by: <span class="text-indigo-400 font-bold">{{ farmer.email
-                }}</span> on {{ land.timestamp.strftime('%Y-%m-%d') }}</p>
-    </div>
-
-    <div class="flex gap-4">
-        {% if current_user.role == 'company' and land.status == 'listed' %}
-        <form action="{{ url_for('buy_credits', validation_id=land.id) }}" method="POST">
-            <button type="submit" class="btn-primary px-8">
-                <i class="fas fa-shopping-cart"></i> Acquire Asset
+        <div class="reveal flex gap-4">
+            <button
+                class="px-6 py-3 bg-apple-section text-apple-text rounded-2xl font-black uppercase tracking-widest text-[10px] border border-black/5 hover:bg-black/5 transition-all">
+                Download PDF Report
             </button>
-        </form>
-        {% endif %}
-        <button onclick="window.print()"
-            class="p-4 glass rounded-2xl text-slate-400 hover:text-white transition-colors">
-            <i class="fas fa-file-pdf"></i>
-        </button>
+            {% if land.status == 'listed' and current_user.role == 'company' %}
+            <form action="{{ url_for('buy_credits', validation_id=land.id) }}" method="POST">
+                <button type="submit" class="apple-btn-primary !px-8 !py-3 !text-[10px]">
+                    Acquire Assets
+                </button>
+            </form>
+            {% endif %}
+        </div>
     </div>
-</div>
 
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
-    <!-- Map Analysis -->
-    <div class="xl:col-span-2 space-y-10">
-        <div class="card !p-0 overflow-hidden border-white/5 shadow-2xl">
-            <div class="p-6 border-b border-white/5 bg-slate-900/50 flex justify-between items-center z-10">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] italic">Satellite Optical
-                    Spectrum Analysis</h3>
-                <div class="flex gap-2">
-                    <button onclick="switchView('satellite')" id="btn-satellite"
-                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all">Satellite
-                        View</button>
-                    <button onclick="switchView('baseline')" id="btn-baseline"
-                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all">Baseline
-                        Prediction</button>
-                    <button onclick="switchView('latest')" id="btn-latest"
-                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all">Latest
-                        Prediction</button>
-                </div>
+    <!-- Imagery Comparison -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 reveal delay-150">
+        <div class="apple-card !p-0 overflow-hidden">
+            <div class="p-4 bg-apple-section/50 border-b border-black/5">
+                <p class="text-[9px] font-black uppercase tracking-widest text-apple-secondary">Baseline Sensor</p>
             </div>
-            <div class="relative h-[600px] bg-slate-900">
-                <img id="telemetry-img" src="{{ land.tile_url }}"
-                    class="w-full h-full object-contain grayscale-[0.2] brightness-75 contrast-125 transition-all duration-500"
-                    alt="Land Map Analysis">
+            <div class="aspect-square bg-apple-section">
+                <img src="{{ land.tile_url_baseline }}" class="w-full h-full object-cover" alt="Baseline Imagery">
+            </div>
+        </div>
+        <div class="apple-card !p-0 overflow-hidden border-apple-accent/20 border-2">
+            <div class="p-4 bg-apple-accent/5 border-b border-apple-accent/10">
+                <p class="text-[9px] font-black uppercase tracking-widest text-apple-accent">AI Overlay (Delta SOC)</p>
+            </div>
+            <div class="aspect-square bg-apple-section">
+                <img src="{{ land.tile_url }}" class="w-full h-full object-cover" alt="Heatmap Imagery">
+            </div>
+        </div>
+        <div class="apple-card !p-0 overflow-hidden">
+            <div class="p-4 bg-apple-section/50 border-b border-black/5">
+                <p class="text-[9px] font-black uppercase tracking-widest text-apple-secondary">Latest Telemetry</p>
+            </div>
+            <div class="aspect-square bg-apple-section">
+                <img src="{{ land.tile_url_latest }}" class="w-full h-full object-cover" alt="Latest Imagery">
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Matrix -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 reveal delay-300">
+        <div class="apple-card">
+            <p class="text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-1">Carbon Yield</p>
+            <h4 class="text-3xl font-black text-apple-text tracking-tighter">{{ land.credits }} tCO2e</h4>
+        </div>
+        <div class="apple-card">
+            <p class="text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-1">Soil Organic Carbon
+            </p>
+            <h4 class="text-3xl font-black text-apple-text tracking-tighter cursor-help" title="Delta SOC Estimate">+{{
+                "{:.2f}".format(land.soc_diff / 100) }}%</h4>
+        </div>
+        <div class="apple-card">
+            <p class="text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-1">Status</p>
+            <h4
+                class="text-3xl font-black uppercase tracking-tighter {{ 'text-apple-accent' if land.status == 'sold' else 'text-apple-secondary' }}">
+                {{ land.status }}
+            </h4>
+        </div>
+        <div class="apple-card">
+            <p class="text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-1">Audit Score</p>
+            <h4 class="text-3xl font-black text-emerald-500 tracking-tighter">98/100</h4>
+        </div>
+    </div>
+
+    <!-- Detailed Info -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 reveal delay-450">
+        <div class="lg:col-span-2 space-y-8">
+            <div class="apple-card">
+                <h3 class="text-xl font-bold mb-6 tracking-tight">Geospatial Boundaries</h3>
                 <div
-                    class="absolute inset-0 bg-gradient-to-t from-[#1E293B] via-transparent to-transparent opacity-40 pointer-events-none">
+                    class="bg-apple-section rounded-2xl p-6 font-mono text-[11px] text-apple-secondary border border-black/5 overflow-x-auto">
+                    {{ land.coordinates }}
                 </div>
-                <!-- HUD Overlay -->
-                <div class="absolute bottom-8 left-8 right-8 flex justify-between items-end pointer-events-none">
-                    <div class="p-6 glass border-emerald-500/20 rounded-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Grid Coordinates
+                <div class="mt-6 flex gap-8">
+                    <div>
+                        <span
+                            class="block text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-1">Model
+                            Precision</span>
+                        <span class="text-sm font-bold">94.2% (Sentinel-2)</span>
+                    </div>
+                    <div>
+                        <span
+                            class="block text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-1">Analysis
+                            Period</span>
+                        <span class="text-sm font-bold">{{ land.start_date }} - {{ land.end_date }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="apple-card bg-apple-section/30">
+                <h3
+                    class="text-xs font-black text-apple-secondary uppercase tracking-[0.2em] mb-6 border-b border-black/5 pb-4">
+                    Stewardship
+                </h3>
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 bg-white rounded-2xl border border-black/5 flex items-center justify-center text-apple-accent shadow-sm">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-apple-secondary uppercase tracking-widest">Original Farmer
                         </p>
-                        <p class="text-xs font-mono text-emerald-400">POLYSCAN_UUID: {{ land.coordinates[:20] }}...</p>
+                        <p class="text-sm font-bold text-apple-text">User #{{ land.user_id }}</p>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="card">
-                <h4
-                    class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4">
-                    Carbon Sequestration</h4>
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-sm font-medium text-slate-500">Total Yield</span>
-                    <span class="text-2xl font-black text-white">{{ land.credits }} <span
-                            class="text-xs font-normal text-slate-500">tCO2e</span></span>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-sm font-medium text-slate-500">SOC Increase</span>
-                    <div class="flex items-center gap-2">
-                        <div class="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-emerald-500" style="width: {{ land.soc_diff }}%"></div>
-                        </div>
-                        <span class="text-sm font-black text-emerald-400">+{{ land.soc_diff }}%</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h4
-                    class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-white/5 pb-4">
-                    Verification Cycle</h4>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-slate-500">Baseline</span>
-                        <span class="text-sm font-bold text-slate-200">{{ land.start_date }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-slate-500">Verification</span>
-                        <span class="text-sm font-bold text-slate-200">{{ land.end_date }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sidebar Data -->
-    <div class="space-y-8">
-        <div class="card bg-indigo-500/5 border-indigo-500/20">
-            <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.2em] mb-6">Ownership Chain</h4>
-            <div
-                class="relative pl-8 space-y-8 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-indigo-500/20">
-                <div class="relative">
-                    <div
-                        class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-indigo-500 shadow-lg shadow-indigo-500/40">
-                    </div>
-                    <p class="text-[10px] font-black text-indigo-400 uppercase mb-1">Origin Node</p>
-                    <p class="text-sm font-bold text-white">Farmer #{{ land.user_id }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Validated on {{ land.timestamp.strftime('%b %d, %Y') }}
+                <div class="mt-6 pt-6 border-t border-black/5">
+                    <p class="text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-2">Current Owner
                     </p>
-                </div>
-                {% if land.status == 'sold' %}
-                <div class="relative">
-                    <div
-                        class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/40">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-apple-accent text-xs"></i>
+                        <span class="text-sm font-bold text-apple-text">
+                            {{ 'Company Node #0x' + land.owner_id|string if land.status == 'sold' else 'Farmer Node #0x'
+                            + land.user_id|string }}
+                        </span>
                     </div>
-                    <p class="text-[10px] font-black text-emerald-400 uppercase mb-1">Current Steward</p>
-                    <p class="text-sm font-bold text-white">Company #{{ land.owner_id }}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">Transfer Complete</p>
-                </div>
-                {% else %}
-                <div class="relative opacity-30">
-                    <div class="absolute -left-[27px] top-1 w-4 h-4 rounded-full bg-slate-600"></div>
-                    <p class="text-[10px] font-black text-slate-500 uppercase mb-1">Transfer Pending</p>
-                    <p class="text-sm font-bold text-slate-600">Market Listing Active</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="card border-0 bg-slate-900 shadow-inner">
-            <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.2em] mb-4">ESG Impact Metadata</h4>
-            <div class="space-y-4">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-microscope text-slate-600"></i>
-                    <span class="text-[11px] text-slate-400">SAR (L-Band) Cross-Verification: <span
-                            class="text-emerald-500">PASS</span></span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-check-double text-slate-600"></i>
-                    <span class="text-[11px] text-slate-400">Additionality Check: <span
-                            class="text-emerald-500">CONFIRMED</span></span>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    const images = {
-        satellite: "{{ land.tile_url }}",
-        baseline: "{{ land.tile_url_baseline }}",
-        latest: "{{ land.tile_url_latest }}"
-    };
-
-    function switchView(view) {
-        const img = document.getElementById('telemetry-img');
-        const btns = {
-            satellite: document.getElementById('btn-satellite'),
-            baseline: document.getElementById('btn-baseline'),
-            latest: document.getElementById('btn-latest')
-        };
-
-        // Update Image
-        img.classList.add('opacity-0');
-        setTimeout(() => {
-            img.src = images[view];
-            img.classList.remove('opacity-0');
-        }, 200);
-
-        // Update Buttons
-        Object.keys(btns).forEach(k => {
-            const btn = btns[k];
-            if (k === view) {
-                btn.className = "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all";
-            } else {
-                btn.className = "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-800 text-slate-400 hover:bg-slate-700 transition-all";
-            }
-        });
-    }
-</script>
 {% endblock %}

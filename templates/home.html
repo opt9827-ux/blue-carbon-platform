@@ -1,19 +1,203 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>BhoomiChain | Carbon Marketplace</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Carbon | The Future of Carbon Assets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/apple.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bg: '#FFFFFF',
+                            section: '#F5F5F7',
+                            text: '#1D1D1F',
+                            secondary: '#86868B',
+                            accent: '#0071E3',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .hero { background: #2d5a27; color: white; padding: 100px 0; text-align: center; }
-        .btn-primary { background-color: #4CAF50; border: none; }
+        .hero-gradient {
+            background: radial-gradient(circle at 50% 50%, #E3F2FD 0%, #FFFFFF 100%);
+        }
     </style>
 </head>
-<body>
-    <div class="hero">
-        <h1>Welcome to BhoomiChain</h1>
-        <p>AI-Verified Carbon Credits for a Greener India.</p>
-        <a href="/signup" class="btn btn-primary btn-lg">Get Started</a>
-        <a href="/login" class="btn btn-outline-light btn-lg">Login</a>
-    </div>
+
+<body class="bg-apple-bg font-['Inter'] text-apple-text antialiased selection:bg-apple-accent/30">
+
+    <!-- Translucent Nav -->
+    <nav class="apple-nav h-14 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-leaf text-apple-accent"></i>
+            <span class="font-bold tracking-tight text-sm">BlueCarbon</span>
+        </div>
+        <div class="hidden md:flex items-center gap-8 text-[12px] font-medium text-apple-text/80">
+            <a href="#" class="hover:text-apple-accent transition-colors">Marketplace</a>
+            <a href="#" class="hover:text-apple-accent transition-colors">Technology</a>
+            <a href="#" class="hover:text-apple-accent transition-colors">Sustainability</a>
+            <a href="#" class="hover:text-apple-accent transition-colors">About</a>
+        </div>
+        <div class="flex items-center gap-4">
+            <a href="{{ url_for('login') }}"
+                class="text-[12px] font-medium hover:text-apple-accent px-4 py-1.5 rounded-full border border-black/5 hover:border-apple-accent/20 transition-all">Login</a>
+            <a href="{{ url_for('signup') }}" class="apple-btn-primary !py-1.5 !px-5 !text-[12px]">Get Started</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section
+        class="min-h-screen hero-gradient flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
+        <div class="reveal max-w-4xl">
+            <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 leading-tight">
+                Blue Carbon.<br><span class="text-apple-accent">Verified by Space.</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-apple-secondary font-medium mb-10 max-w-2xl mx-auto">
+                The world's most transparent carbon credit marketplace, powered by satellite MRV and AI.
+            </p>
+            <div class="flex flex-col md:flex-row gap-6 justify-center">
+                <a href="{{ url_for('signup') }}" class="apple-btn-primary !px-10 !py-4 !text-lg">Register Your Land</a>
+                <a href="{{ url_for('login') }}"
+                    class="px-10 py-4 text-apple-accent font-bold text-lg hover:underline">Learn how it works <i
+                        class="fas fa-chevron-right ml-1 text-sm"></i></a>
+            </div>
+        </div>
+
+        <!-- Abstract Illustration -->
+        <div class="mt-20 w-full max-w-6xl reveal delay-300">
+            <div
+                class="relative rounded-3xl overflow-hidden shadow-2xl shadow-apple-accent/10 border border-black/5 aspect-video bg-apple-section">
+                <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
+                    class="w-full h-full object-cover opacity-80" alt="Mountain Satellite View">
+                <div class="absolute inset-0 bg-gradient-to-t from-apple-bg/50 to-transparent"></div>
+                <div class="absolute bottom-10 left-10 text-left">
+                    <span
+                        class="px-3 py-1 bg-apple-accent text-white text-[10px] font-black uppercase rounded-full tracking-widest mb-4 inline-block italic">Live
+                        Sync</span>
+                    <h3 class="text-3xl font-bold text-apple-text tracking-tighter">Satellite MRV v2.4</h3>
+                    <p class="text-sm text-apple-secondary mt-2">Real-time carbon sequestration analysis. Enabled
+                        globally.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="py-40 bg-apple-section px-10">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="reveal apple-card">
+                    <div
+                        class="w-14 h-14 bg-apple-accent/10 text-apple-accent rounded-2xl flex items-center justify-center text-2xl mb-8">
+                        <i class="fas fa-satellite"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4 tracking-tight">Precision Verification</h4>
+                    <p class="text-apple-secondary leading-relaxed">Our satellite-first approach ensures every credit is
+                        backed by measurable ecological data, eliminating double-counting and greenwashing.</p>
+                </div>
+                <div class="reveal delay-150 apple-card">
+                    <div
+                        class="w-14 h-14 bg-apple-accent/10 text-apple-accent rounded-2xl flex items-center justify-center text-2xl mb-8">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4 tracking-tight">Global Marketplace</h4>
+                    <p class="text-apple-secondary leading-relaxed">Connect directly with institutional buyers. Trade
+                        carbon assets with the liquidity and transparency of a modern financial market.</p>
+                </div>
+                <div class="reveal delay-300 apple-card">
+                    <div
+                        class="w-14 h-14 bg-apple-accent/10 text-apple-accent rounded-2xl flex items-center justify-center text-2xl mb-8">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-4 tracking-tight">Immutable Registry</h4>
+                    <p class="text-apple-secondary leading-relaxed">Every transaction is recorded on our secure ledger,
+                        providing a permanent audit trail for ESG compliance and regulatory reporting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Quote -->
+    <section class="py-40 text-center px-10 bg-apple-bg">
+        <div class="max-w-4xl mx-auto reveal">
+            <h2 class="text-5xl md:text-7xl font-black tracking-tighter mb-10 leading-tight italic">
+                "We don't just measure carbon. We empower the planet's stewards."
+            </h2>
+            <div class="flex items-center justify-center gap-4">
+                <div
+                    class="w-12 h-12 rounded-full bg-apple-section flex items-center justify-center text-apple-secondary">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <div class="text-left">
+                    <p class="font-bold">Blue Carbon Impact Team</p>
+                    <p class="text-xs text-apple-secondary font-medium">Environmental Social Governance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-20 bg-apple-section border-t border-black/5 px-10">
+        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10">
+            <div class="col-span-2">
+                <div class="flex items-center gap-2 mb-6">
+                    <i class="fas fa-leaf text-apple-accent"></i>
+                    <span class="font-bold tracking-tight text-xl">BlueCarbon</span>
+                </div>
+                <p class="text-apple-secondary max-w-sm mb-10 italic">Building the infrastructure for the next
+                    generation of ecological assets.</p>
+                <div class="flex gap-6 text-xl text-apple-text/40">
+                    <a href="#" class="hover:text-apple-accent transition-colors"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="hover:text-apple-accent transition-colors"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" class="hover:text-apple-accent transition-colors"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            <div>
+                <h5 class="font-black uppercase tracking-widest text-[10px] mb-6">Network</h5>
+                <ul class="space-y-4 text-sm text-apple-secondary font-medium">
+                    <li><a href="#" class="hover:text-apple-accent">Dashboards</a></li>
+                    <li><a href="#" class="hover:text-apple-accent">Marketplace</a></li>
+                    <li><a href="#" class="hover:text-apple-accent">API Docs</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="font-black uppercase tracking-widest text-[10px] mb-6">Governance</h5>
+                <ul class="space-y-4 text-sm text-apple-secondary font-medium">
+                    <li><a href="#" class="hover:text-apple-accent">Transparency</a></li>
+                    <li><a href="#" class="hover:text-apple-accent">Verification</a></li>
+                    <li><a href="#" class="hover:text-apple-accent">Privacy</a></li>
+                </ul>
+            </div>
+        </div>
+        <div
+            class="max-w-7xl mx-auto mt-20 pt-10 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p class="text-[12px] text-apple-secondary">Copyright © 2026 BlueCarbon Platform. All rights reserved.</p>
+            <div class="flex gap-8 text-[12px] text-apple-secondary font-medium">
+                <a href="#" class="hover:underline">Privacy Policy</a>
+                <a href="#" class="hover:underline">Terms of Use</a>
+                <a href="#" class="hover:underline">Legal</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Reveal Logic (Local Duplicate for speed if needed, but base.html has it too)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
 </body>
+
 </html>

@@ -15,18 +15,18 @@
 <style>
     .leaflet-bar {
         border: none !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     }
 
     .leaflet-bar a {
-        background-color: #1E293B !important;
-        color: #94A3B8 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        background-color: #FFFFFF !important;
+        color: #1D1D1F !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
     }
 
     .leaflet-bar a:hover {
-        background-color: #334155 !important;
-        color: white !important;
+        background-color: #F5F5F7 !important;
+        color: #0071E3 !important;
     }
 
     .leaflet-draw-toolbar-top {
@@ -40,30 +40,32 @@
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-10 h-[calc(100vh-280px)]">
     <!-- Map Canvas -->
     <div class="lg:col-span-3 relative group">
-        <div id="map" class="h-full w-full rounded-[2rem] shadow-2xl border border-white/5 overflow-hidden"></div>
+        <div id="map"
+            class="h-full w-full rounded-[2rem] shadow-sm border border-black/5 overflow-hidden bg-apple-section"></div>
 
-        <!-- Glassmorphism Stats Panel -->
+        <!-- Apple-style Stats Panel -->
         <div id="area-panel"
-            class="hidden map-stats-panel glass border-emerald-500/20 animate-in fade-in slide-in-from-top-4">
+            class="hidden absolute top-6 right-6 z-[1000] w-64 bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] border border-black/5 shadow-xl animate-in fade-in slide-in-from-top-4">
             <div class="flex items-center gap-3 mb-4">
                 <div id="status-icon"
-                    class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/20 text-amber-500">
+                    class="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500">
                     <i class="fas fa-draw-polygon"></i>
                 </div>
                 <div>
-                    <p class="text-[10px] uppercase font-black text-slate-500 tracking-widest">Detected Geometry</p>
-                    <h4 id="status-text" class="text-sm font-bold text-white">Calculating...</h4>
+                    <p class="text-[10px] uppercase font-black text-apple-secondary tracking-widest">Detected Geometry
+                    </p>
+                    <h4 id="status-text" class="text-sm font-bold text-apple-text">Calculating...</h4>
                 </div>
             </div>
 
             <div class="space-y-4">
-                <div class="flex justify-between items-end border-b border-white/5 pb-3">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Hectares</span>
-                    <span id="area-ha" class="text-2xl font-black text-emerald-400">0.00</span>
+                <div class="flex justify-between items-end border-b border-black/5 pb-3">
+                    <span class="text-xs font-bold text-apple-secondary uppercase">Hectares</span>
+                    <span id="area-ha" class="text-2xl font-black text-apple-accent">0.00</span>
                 </div>
                 <div class="flex justify-between items-end">
-                    <span class="text-xs font-bold text-slate-400 uppercase">Acres</span>
-                    <span id="area-ac" class="text-lg font-bold text-indigo-400">0.00</span>
+                    <span class="text-xs font-bold text-apple-secondary uppercase">Acres</span>
+                    <span id="area-ac" class="text-lg font-bold text-apple-secondary">0.00</span>
                 </div>
             </div>
 
@@ -75,17 +77,17 @@
         <!-- Overlays Controls -->
         <div class="absolute bottom-8 left-8 z-[1000] flex flex-col gap-3">
             <button id="toggle-layer"
-                class="w-12 h-12 glass rounded-xl flex items-center justify-center text-slate-300 hover:text-emerald-400 cursor-pointer shadow-xl transition-all hover:scale-110 active:scale-95"
+                class="w-12 h-12 bg-white/80 backdrop-blur-md border border-black/5 rounded-2xl flex items-center justify-center text-apple-secondary hover:text-apple-accent cursor-pointer shadow-lg transition-all hover:scale-110 active:scale-95"
                 title="Toggle Satellite">
                 <i class="fas fa-globe-asia text-lg"></i>
             </button>
             <button id="toggle-heatmap"
-                class="w-12 h-12 glass rounded-xl flex items-center justify-center text-slate-300 hover:text-amber-400 cursor-pointer shadow-xl transition-all hover:scale-110 active:scale-95"
+                class="w-12 h-12 bg-white/80 backdrop-blur-md border border-black/5 rounded-2xl flex items-center justify-center text-apple-secondary hover:text-amber-500 cursor-pointer shadow-lg transition-all hover:scale-110 active:scale-95"
                 title="Carbon Heatmap">
                 <i class="fas fa-fire-alt text-lg"></i>
             </button>
             <button id="reset-map"
-                class="w-12 h-12 glass rounded-xl flex items-center justify-center text-slate-300 hover:text-red-400 cursor-pointer shadow-xl transition-all hover:scale-110 active:scale-95 border-red-500/20"
+                class="w-12 h-12 bg-white/80 backdrop-blur-md border border-red-500/10 rounded-2xl flex items-center justify-center text-apple-secondary hover:text-red-500 cursor-pointer shadow-lg transition-all hover:scale-110 active:scale-95"
                 title="Reset Selection">
                 <i class="fas fa-trash-alt text-lg"></i>
             </button>
@@ -94,14 +96,16 @@
 
     <!-- Registration Sidebar -->
     <div class="space-y-8 h-full flex flex-col">
-        <div class="card flex-1 border-white/10 shadow-emerald-900/10">
+        <div class="apple-card flex-1 border-black/5">
             <div class="flex items-center gap-3 mb-8">
-                <div class="w-10 h-10 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center">
+                <div
+                    class="w-10 h-10 bg-apple-accent/5 text-apple-accent rounded-xl flex items-center justify-center border border-apple-accent/10">
                     <i class="fas fa-satellite-dish"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-white uppercase tracking-tighter">Plot Specs</h3>
-                    <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">MRV Protocol v2.4</p>
+                    <h3 class="font-bold text-apple-text tracking-tight">Plot Specs</h3>
+                    <p class="text-[10px] text-apple-secondary font-bold tracking-widest uppercase">MRV Protocol v2.4
+                    </p>
                 </div>
             </div>
 
@@ -111,49 +115,49 @@
                 <div class="space-y-6 flex-1">
                     <div class="group">
                         <label
-                            class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 group-focus-within:text-emerald-400 transition-colors">Start
+                            class="block text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-2 group-focus-within:text-apple-accent transition-colors">Start
                             Date</label>
                         <input type="date" name="start_date" required
-                            class="w-full p-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-700">
+                            class="w-full p-4 bg-apple-section border border-black/5 rounded-2xl text-apple-text focus:ring-2 focus:ring-apple-accent outline-none transition-all">
                     </div>
                     <div class="group">
                         <label
-                            class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 group-focus-within:text-emerald-400 transition-colors">End
+                            class="block text-[10px] font-black text-apple-secondary uppercase tracking-widest mb-2 group-focus-within:text-apple-accent transition-colors">End
                             Date</label>
                         <input type="date" name="end_date" required
-                            class="w-full p-4 bg-slate-900/50 border border-white/5 rounded-2xl text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-700">
+                            class="w-full p-4 bg-apple-section border border-black/5 rounded-2xl text-apple-text focus:ring-2 focus:ring-apple-accent outline-none transition-all">
                     </div>
                 </div>
 
                 <div class="pt-8">
                     <button type="submit" id="submit-btn" disabled
-                        class="w-full py-5 btn-primary opacity-50 cursor-not-allowed justify-center shadow-emerald-500/20 hover:shadow-emerald-500/40">
-                        <i class="fas fa-microchip animate-pulse"></i>
-                        <span class="uppercase tracking-widest font-black text-sm">Initiate Validation</span>
+                        class="apple-btn-primary w-full py-5 justify-center !text-sm opacity-50 cursor-not-allowed shadow-lg shadow-apple-accent/20">
+                        <i class="fas fa-microchip mr-2"></i>
+                        <span class="uppercase tracking-widest font-black">Initiate Validation</span>
                     </button>
                 </div>
             </form>
         </div>
 
         <!-- Guidelines -->
-        <div class="p-6 glass rounded-[2rem] border-blue-500/20">
-            <h4 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">Constraints</h4>
+        <div class="p-6 bg-apple-section rounded-[2rem] border border-black/5">
+            <h4 class="text-[10px] font-black text-apple-accent uppercase tracking-widest mb-4">Constraints</h4>
             <div class="space-y-3">
                 <div class="flex items-start gap-3">
                     <div
-                        class="w-4 h-4 bg-emerald-500/20 text-emerald-400 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                        class="w-4 h-4 bg-emerald-500/10 text-emerald-500 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-emerald-500/20">
                         <i class="fas fa-check text-[8px]"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 leading-relaxed font-medium">Min: <span
-                            class="text-white font-bold">10 Ha</span> (Threshold for model accuracy)</p>
+                    <p class="text-[11px] text-apple-secondary leading-relaxed font-bold">Min: <span
+                            class="text-apple-text">10 Ha</span></p>
                 </div>
                 <div class="flex items-start gap-3">
                     <div
-                        class="w-4 h-4 bg-red-500/20 text-red-400 rounded flex items-center justify-center flex-shrink-0 mt-0.5">
+                        class="w-4 h-4 bg-red-500/10 text-red-500 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border border-red-500/20">
                         <i class="fas fa-times text-[8px]"></i>
                     </div>
-                    <p class="text-[11px] text-slate-400 leading-relaxed font-medium">Max: <span
-                            class="text-white font-bold">5000 Ha</span> (System processing limit)</p>
+                    <p class="text-[11px] text-apple-secondary leading-relaxed font-bold">Max: <span
+                            class="text-apple-text">5000 Ha</span></p>
                 </div>
             </div>
         </div>
@@ -162,18 +166,13 @@
 
 <script>
     // Initialize Layers
-    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        className: 'map-slate-filter' // Custom CSS filter can be added
-    });
-
-    const worldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-    });
+    const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    const worldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
 
     const heatPoints = [
         [17.21, 78.27, 0.5], [17.22, 78.28, 0.8], [17.23, 78.26, 0.3], [17.19, 78.25, 0.9]
     ];
-    const heatLayer = L.heatLayer(heatPoints, { radius: 40, blur: 15, gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'yellow' } });
+    const heatLayer = L.heatLayer(heatPoints, { radius: 40, blur: 15, gradient: { 0.4: '#0071E3', 0.65: '#34d399', 1: '#fbbf24' } });
 
     // Initialize Map
     const map = L.map('map', {
@@ -193,7 +192,7 @@
         if (isSatellite) { map.removeLayer(worldImagery); map.addLayer(osm); }
         else { map.removeLayer(osm); map.addLayer(worldImagery); }
         isSatellite = !isSatellite;
-        e.currentTarget.classList.toggle('text-emerald-400');
+        e.currentTarget.classList.toggle('text-apple-accent');
     });
 
     let isHeatmap = false;
@@ -201,7 +200,7 @@
         if (isHeatmap) map.removeLayer(heatLayer);
         else map.addLayer(heatLayer);
         isHeatmap = !isHeatmap;
-        e.currentTarget.classList.toggle('text-amber-400');
+        e.currentTarget.classList.toggle('text-amber-500');
     });
 
     const editableLayers = new L.FeatureGroup();
@@ -211,8 +210,8 @@
         draw: {
             polygon: {
                 allowIntersection: false,
-                icon: new L.DivIcon({ iconSize: [12, 12], className: 'leaflet-div-icon leaflet-editing-icon bg-emerald-500 rounded-full border-2 border-white' }),
-                shapeOptions: { color: '#10b981', fillOpacity: 0.3, weight: 3 }
+                icon: new L.DivIcon({ iconSize: [12, 12], className: 'leaflet-div-icon bg-apple-accent rounded-full border-2 border-white' }),
+                shapeOptions: { color: '#0071E3', fillOpacity: 0.2, weight: 3 }
             },
             polyline: false, rectangle: true, circle: false, marker: false, circlemarker: false
         },
@@ -237,26 +236,25 @@
         const alertDiv = document.getElementById('feedback-alert');
         const iconDiv = document.getElementById('status-icon');
         const statusText = document.getElementById('status-text');
-        const submitBtn = document.getElementById('submit-btn');
 
         alertDiv.classList.remove('hidden');
 
         if (ha < 10) {
-            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-red-500/10 text-red-400 border border-red-500/20";
+            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-red-500/10 text-red-500 border border-red-500/10";
             alertDiv.querySelector('span').innerText = "Plot too small! 10 Ha required.";
-            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/20 text-red-500";
+            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500";
             statusText.innerText = "Invalid Area";
             updateBtn(false);
         } else if (ha > 5000) {
-            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-amber-500/10 text-amber-500 border border-amber-500/10";
             alertDiv.querySelector('span').innerText = "Plot too large! 5000 Ha limit.";
-            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/20 text-amber-500";
+            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500";
             statusText.innerText = "Limit Exceeded";
             updateBtn(false);
         } else {
-            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            alertDiv.className = "mt-4 p-3 rounded-xl text-[11px] font-bold italic bg-emerald-500/10 text-emerald-500 border border-emerald-500/10";
             alertDiv.querySelector('span').innerText = "Ready for AI analysis.";
-            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/20 text-emerald-400";
+            iconDiv.className = "w-10 h-10 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-500";
             statusText.innerText = "Optimal Plot";
             updateBtn(true);
         }
@@ -294,11 +292,11 @@
             text: "Satellite MRV validation will begin immediately.",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#059669',
-            cancelButtonColor: '#1E293B',
+            confirmButtonColor: '#0071E3',
+            cancelButtonColor: '#F5F5F7',
             confirmButtonText: 'Yes, start AI sync',
-            background: '#1E293B',
-            color: '#F8FAFC'
+            background: '#FFFFFF',
+            color: '#1D1D1F'
         });
 
         if (!confirm) return;
@@ -313,15 +311,15 @@
             const result = await res.json();
 
             if (result.success) {
-                Swal.fire({ icon: 'success', title: 'Mission Success', text: result.message, background: '#1E293B', color: '#F8FAFC' })
+                Swal.fire({ icon: 'success', title: 'Mission Success', text: result.message, background: '#FFFFFF', color: '#1D1D1F' })
                     .then(() => window.location.href = "{{ url_for('my_lands') }}");
             } else {
-                Swal.fire({ icon: 'error', title: 'Sync Error', text: result.error, background: '#1E293B', color: '#F8FAFC' });
+                Swal.fire({ icon: 'error', title: 'Sync Error', text: result.error, background: '#FFFFFF', color: '#1D1D1F' });
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-microchip"></i> RE-INITIATE SYNC';
             }
         } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Network Failure', text: "Satellite link interrupted.", background: '#1E293B', color: '#F8FAFC' });
+            Swal.fire({ icon: 'error', title: 'Network Failure', text: "Satellite link interrupted.", background: '#FFFFFF', color: '#1D1D1F' });
             submitBtn.disabled = false;
         }
     };

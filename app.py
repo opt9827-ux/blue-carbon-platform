@@ -2,7 +2,7 @@ import os
 import json
 import datetime
 import numpy as np
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -63,6 +63,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False) # farmer, company, admin
+    balance = db.Column(db.Float, default=10000.0) # Added for purchasing credits
 
 class Validation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -76,7 +77,7 @@ class Validation(db.Model):
     tile_url_baseline = db.Column(db.Text)
     tile_url_latest = db.Column(db.Text)
     tx_hash = db.Column(db.String(100))
-    status = db.Column(db.String(20), default='listed') # listed, sold
+    status = db.Column(db.String(20), default='pending') # pending, verified, sold
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Current owner (farmer initially, then company)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -134,6 +135,11 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+@app.route('/profile')
+@login_required
+def profile():
+    return render_template('profile.html', user=current_user)
+
 # --- Home Route ---
 @app.route('/')
 def home():
@@ -157,7 +163,7 @@ def company_dashboard():
         return "Unauthorized", 403
     
     # Marketplace and Portfolio
-    marketplace = Validation.query.filter_by(status='listed').all()
+    marketplace = Validation.query.filter_by(status='verified').all()
     owned = Validation.query.filter_by(owner_id=current_user.id).all()
     
     # Stats
@@ -176,7 +182,7 @@ def company_dashboard():
 @app.route('/marketplace_map_data')
 @login_required
 def marketplace_map_data():
-    validations = Validation.query.filter_by(status='listed').all()
+    validations = Validation.query.filter_by(status='verified').all()
     features = []
     for v in validations:
         try:
@@ -224,12 +230,29 @@ def my_lands():
 @login_required
 def land_details(land_id):
     land = Validation.query.get_or_404(land_id)
-    # Ensure privacy: Only the farmer who owns it, or any company can view 
+    # Ensure privacy: Only the farmer who owns it, admins, or any company can view 
     if current_user.role == 'farmer' and land.user_id != current_user.id:
         return "Unauthorized", 403
     
-    farmer = User.query.get(land.user_id)
+    farmer = db.session.get(User, land.user_id)
     return render_template('land_details.html', land=land, farmer=farmer)
+
+# --- Admin Controls ---
+@app.route('/verify_land/<int:land_id>', methods=['POST'])
+@login_required
+def verify_land(land_id):
+    if current_user.role != 'admin':
+        return "Unauthorized", 403
+    
+    val = Validation.query.get_or_404(land_id)
+    if val.status == 'pending':
+        val.status = 'verified'
+        db.session.commit()
+        flash(f"Land Node #0x{land_id} has been verified and listed in the marketplace.")
+    else:
+        flash(f"Land Node #0x{land_id} is already {val.status}.")
+        
+    return redirect(url_for('admin_dashboard'))
 
 # --- 5. Marketplace Logic ---
 @app.route('/buy_credits/<int:validation_id>', methods=['POST'])
@@ -240,26 +263,45 @@ def buy_credits(validation_id):
         return redirect(url_for('company_dashboard'))
 
     val = Validation.query.get_or_404(validation_id)
-    if val.status == 'sold':
-        flash("Credits already sold.")
+    if val.status != 'verified':
+        flash("This asset is no longer available for purchase.")
         return redirect(url_for('company_dashboard'))
 
-    # Record Transaction
-    tx = Transaction(
-        validation_id=val.id,
-        seller_id=val.user_id,
-        buyer_id=current_user.id,
-        amount=val.credits * 18.5 # Mock price per ton
-    )
-    
-    # Update Validation Status
-    val.status = 'sold'
-    val.owner_id = current_user.id
-    
-    db.session.add(tx)
-    db.session.commit()
-    
-    flash(f"Successfully purchased {val.credits} credits!")
+    price_per_ton = 18.5
+    total_cost = val.credits * price_per_ton
+
+    if current_user.balance < total_cost:
+        flash(f"Insufficient funds for purchase. Cost: ${total_cost:,.2f}, Balance: ${current_user.balance:,.2f}")
+        return redirect(url_for('company_dashboard'))
+
+    try:
+        # Atomic Transaction
+        # Record Transaction
+        tx = Transaction(
+            validation_id=val.id,
+            seller_id=val.user_id,
+            buyer_id=current_user.id,
+            amount=total_cost
+        )
+        
+        # Update Balances
+        current_user.balance -= total_cost
+        seller = db.session.get(User, val.user_id)
+        if seller:
+            seller.balance += total_cost
+        
+        # Update Validation Status and Ownership
+        val.status = 'sold'
+        val.owner_id = current_user.id
+
+        db.session.add(tx)
+        db.session.commit()
+        
+        flash(f"Success! Purchased {val.credits} tCO2e for ${total_cost:,.2f}. Assets transferred to your portfolio.")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Transaction failed: {str(e)}")
+        
     return redirect(url_for('company_dashboard'))
 
 # --- 6. MRV Validation ---
@@ -317,7 +359,7 @@ def validate():
             tile_url=report['satellite_image'],
             tile_url_baseline=report['baseline_image'],
             tile_url_latest=report['latest_image'],
-            status='listed'
+            status='pending'
         )
         db.session.add(new_val)
         db.session.commit()

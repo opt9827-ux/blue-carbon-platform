@@ -13,22 +13,40 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Bootstrap/Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/apple.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        apple: {
+                            bg: '#FFFFFF',
+                            section: '#F5F5F7',
+                            text: '#1D1D1F',
+                            secondary: '#86868B',
+                            accent: '#0071E3',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-[#0F172A] font-['Inter'] text-slate-200 antialiased selection:bg-emerald-500/30">
+<body class="bg-apple-bg font-['Inter'] text-apple-text antialiased selection:bg-apple-accent/30">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
         <aside
-            class="w-72 bg-[#1E293B] border-r border-white/5 flex-shrink-0 transition-all duration-300 hidden md:flex flex-col z-20 shadow-2xl">
+            class="w-72 bg-apple-section border-r border-black/5 flex-shrink-0 transition-all duration-300 hidden md:flex flex-col z-20 shadow-sm">
             <div class="p-8">
-                <div class="flex items-center gap-4 group cursor-pointer">
+                <div class="flex items-center gap-4 group cursor-pointer"
+                    onclick="location.href='{{ url_for('home') }}'">
                     <div
-                        class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                        class="w-10 h-10 bg-apple-accent rounded-xl flex items-center justify-center shadow-lg shadow-apple-accent/20 group-hover:scale-110 transition-transform">
                         <i class="fas fa-leaf text-white text-lg"></i>
                     </div>
-                    <span class="text-2xl font-black tracking-tight text-white uppercase italic">BlueCarbon</span>
+                    <span class="text-xl font-bold tracking-tight text-apple-text">BlueCarbon</span>
                 </div>
             </div>
 
@@ -36,39 +54,45 @@
                 {% if current_user.is_authenticated %}
                 {% if current_user.role == 'farmer' %}
                 <a href="{{ url_for('farmer_dashboard') }}"
-                    class="sidebar-link {% if request.endpoint == 'farmer_dashboard' %}active{% endif %}">
+                    class="apple-sidebar-link {% if request.endpoint == 'farmer_dashboard' %}active{% endif %}">
                     <i class="fas fa-chart-line w-6"></i> Dashboard
                 </a>
                 <a href="{{ url_for('map_tool') }}"
-                    class="sidebar-link {% if request.endpoint == 'map_tool' %}active{% endif %}">
+                    class="apple-sidebar-link {% if request.endpoint == 'map_tool' %}active{% endif %}">
                     <i class="fas fa-map-marked-alt w-6"></i> Register Land
                 </a>
                 <a href="{{ url_for('my_lands') }}"
-                    class="sidebar-link {% if request.endpoint == 'my_lands' %}active{% endif %}">
+                    class="apple-sidebar-link {% if request.endpoint == 'my_lands' %}active{% endif %}">
                     <i class="fas fa-seedling w-6"></i> My Lands
                 </a>
                 {% elif current_user.role == 'company' %}
                 <a href="{{ url_for('company_dashboard') }}"
-                    class="sidebar-link {% if request.endpoint == 'company_dashboard' %}active{% endif %}">
+                    class="apple-sidebar-link {% if request.endpoint == 'company_dashboard' %}active{% endif %}">
                     <i class="fas fa-building w-6"></i> Dashboard
                 </a>
-                <a href="#" class="sidebar-link">
+                <a href="{{ url_for('company_dashboard') }}" class="apple-sidebar-link">
                     <i class="fas fa-shopping-cart w-6"></i> Marketplace
                 </a>
-                <a href="#" class="sidebar-link">
+                <a href="#" class="apple-sidebar-link">
                     <i class="fas fa-history w-6"></i> Purchase History
+                </a>
+                {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}"
+                    class="apple-sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fas fa-shield-halved w-6"></i> System Governance
                 </a>
                 {% endif %}
 
-                <a href="#" class="sidebar-link">
+                <a href="{{ url_for('profile') }}"
+                    class="apple-sidebar-link {% if request.endpoint == 'profile' %}active{% endif %}">
                     <i class="fas fa-user-circle w-6"></i> Profile
                 </a>
                 {% endif %}
             </nav>
 
-            <div class="p-6 border-t border-white/5 bg-slate-900/50">
+            <div class="p-6 border-t border-black/5">
                 <a href="{{ url_for('logout') }}"
-                    class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-red-500/10 rounded-xl transition-all duration-300">
+                    class="flex items-center gap-3 px-4 py-3 text-apple-secondary hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all duration-300">
                     <i class="fas fa-sign-out-alt"></i>
                     <span class="font-bold text-sm tracking-wide uppercase">Logout</span>
                 </a>
@@ -77,34 +101,34 @@
 
         <!-- Main Content -->
         <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-            <!-- Glass Header -->
-            <header
-                class="bg-[#1E293B]/80 backdrop-blur-md border-b border-white/5 h-20 flex items-center justify-between px-10 z-10 sticky top-0">
+            <!-- Apple Header -->
+            <header class="apple-nav h-20 flex items-center justify-between px-10 z-[100]">
                 <div>
-                    <h1 class="text-xl font-black text-white uppercase tracking-wider">{% block header_title
+                    <h1 class="text-xl font-bold text-apple-text tracking-tight">{% block header_title
                         %}Overview{% endblock %}</h1>
-                    <p class="text-xs text-slate-500 font-medium">Monitoring Planet Health & Carbon Assets</p>
+                    <p class="text-xs text-apple-secondary font-medium">Monitoring Planet Health & Carbon Assets</p>
                 </div>
                 <div class="flex items-center gap-6">
                     <div class="flex flex-col items-end">
-                        <span class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Connected Node</span>
-                        <span class="text-sm text-emerald-400 font-mono">{{ current_user.email }}</span>
+                        <span class="text-[10px] text-apple-secondary font-bold uppercase tracking-widest">Active
+                            Account</span>
+                        <span class="text-sm text-apple-accent font-medium">{{ current_user.email }}</span>
                     </div>
-                    <div
-                        class="w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center text-slate-400 shadow-inner group hover:border-emerald-500/50 transition-colors">
-                        <i class="fas fa-user group-hover:text-emerald-400 transition-colors"></i>
+                    <div onclick="location.href='{{ url_for('profile') }}'"
+                        class="w-12 h-12 rounded-2xl bg-apple-section border border-black/5 flex items-center justify-center text-apple-secondary shadow-sm group hover:border-apple-accent transition-colors cursor-pointer">
+                        <i class="fas fa-user group-hover:text-apple-accent transition-colors"></i>
                     </div>
                 </div>
             </header>
 
             <!-- Page Content -->
-            <div class="flex-1 overflow-y-auto p-10 space-y-8">
+            <div class="flex-1 overflow-y-auto p-10 space-y-8 bg-apple-bg">
                 {% with messages = get_flashed_messages() %}
                 {% if messages %}
                 {% for message in messages %}
                 <div
-                    class="p-4 rounded-2xl glass border-emerald-500/30 text-emerald-400 flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
-                    <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                    class="p-4 rounded-3xl bg-apple-accent/10 border border-apple-accent/20 text-apple-accent flex items-center gap-4 animate-in fade-in slide-in-from-top-4">
+                    <div class="w-8 h-8 bg-apple-accent/20 rounded-xl flex items-center justify-center">
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <span class="font-bold text-sm">{{ message }}</span>
@@ -118,8 +142,26 @@
         </main>
     </div>
 
-    <!-- Global Counters Script -->
+    <!-- Global Reveal Logic -->
     <script>
+        const observerOptions = {
+            root: null,
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        });
+
+        // Global Counters Script
         function animateValue(obj, start, end, duration) {
             let startTimestamp = null;
             const step = (timestamp) => {
@@ -136,7 +178,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const counters = document.querySelectorAll('.animate-counter');
             counters.forEach(c => {
-                const target = parseInt(c.innerText.replace(/,/g, ''));
+                const targetText = c.innerText.replace(/[^0-9.]/g, '');
+                const target = parseFloat(targetText) || 0;
                 animateValue(c, 0, target, 1500);
             });
         });
