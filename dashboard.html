@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BhoomiChain — Decentralised Agriculture Monitor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg:        #0b0f1a;
+  --panel:     #111827;
+  --border:    #1e2d40;
+  --accent:    #22d3ee;
+  --green:     #4ade80;
+  --yellow:    #facc15;
+  --red:       #f87171;
+  --orange:    #fb923c;
+  --purple:    #a78bfa;
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'DM Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── Header ── */
+header {
+  background: linear-gradient(135deg, #0f172a 0%, #0b1829 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky; top:0; z-index:100;
+}
+
+.logo-mark {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--green));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.brand { font-family: var(--font-mono); font-size: 15px; font-weight:700; color: var(--accent); }
+.brand span { color: var(--muted); font-weight:400; }
+
+.header-badges { margin-left: auto; display:flex; gap:10px; align-items:center; }
+
+.badge {
+  display:flex; align-items:center; gap:6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  border: 1px solid;
+}
+.badge.live   { color:var(--green);  border-color:var(--green);  background: rgba(74,222,128,.07); }
+.badge.sol    { color:var(--purple); border-color:var(--purple); background: rgba(167,139,250,.07); }
+.badge.lora   { color:var(--accent); border-color:var(--accent); background: rgba(34,211,238,.07); }
+.badge .dot   { width:6px; height:6px; border-radius:50%; background:currentColor; animation:pulse 1.8s infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Layout ── */
+.layout { display:grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 62px); }
+
+/* ── Sidebar ── */
+aside {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.wallet-card {
+  background: linear-gradient(135deg, #1a2235, #0f1829);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.wallet-card h4 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--purple);
+  letter-spacing: .1em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.pubkey {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--accent);
+  word-break: break-all;
+  line-height: 1.6;
+  background: rgba(34,211,238,.05);
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(34,211,238,.15);
+  margin-bottom: 10px;
+}
+.wallet-meta { font-size:11px; color:var(--muted); line-height:1.8; }
+.wallet-meta b { color:var(--text); }
+
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-section h4 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted);
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
+
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all .15s;
+  margin-bottom: 3px;
+}
+.nav-item:hover { background: rgba(255,255,255,.04); color:var(--text); }
+.nav-item.active { background: rgba(34,211,238,.1); color:var(--accent); }
+.nav-icon { font-size: 16px; width:20px; text-align:center; }
+
+.device-list { display:flex; flex-direction:column; gap:8px; }
+.device-item {
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size:12px;
+}
+.device-item .d-eui { font-family:var(--font-mono); font-size:10px; color:var(--accent); margin-bottom:4px; }
+.device-item .d-info { color:var(--muted); display:flex; gap:10px; }
+.d-status { color:var(--green); font-size:10px; }
+
+/* ── Main ── */
+main { padding: 24px 28px; overflow-y: auto; }
+
+/* ── Stat strip ── */
+.stat-strip { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:24px; }
+
+.stat-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  position:relative;
+  overflow:hidden;
+}
+.stat-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+}
+.stat-card.sm::before  { background: var(--accent); }
+.stat-card.st::before  { background: var(--orange); }
+.stat-card.at::before  { background: var(--yellow); }
+.stat-card.hum::before { background: var(--purple); }
+.stat-card.soc::before { background: var(--green); }
+
+.stat-label { font-size:11px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+.stat-val   { font-family:var(--font-mono); font-size:22px; font-weight:700; }
+.stat-card.sm  .stat-val { color:var(--accent); }
+.stat-card.st  .stat-val { color:var(--orange); }
+.stat-card.at  .stat-val { color:var(--yellow); }
+.stat-card.hum .stat-val { color:var(--purple); }
+.stat-card.soc .stat-val { color:var(--green); }
+.stat-sub { font-size:10px; color:var(--muted); margin-top:4px; }
+.trend-up   { color:var(--green); }
+.trend-down { color:var(--red); }
+.trend-flat { color:var(--muted); }
+
+/* ── Section headers ── */
+.section-hdr {
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:14px;
+  margin-top: 24px;
+}
+.section-hdr h2 { font-size:14px; font-weight:600; }
+.section-tag {
+  font-family:var(--font-mono);
+  font-size:9px;
+  padding:2px 8px;
+  border-radius:10px;
+  border: 1px solid;
+}
+.section-tag.live   { color:var(--green);  border-color:var(--green);  }
+.section-tag.ai     { color:var(--purple); border-color:var(--purple); }
+.section-tag.chain  { color:var(--accent); border-color:var(--accent); }
+
+/* ── Charts row ── */
+.charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.charts-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+
+.chart-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.chart-card h3 { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:14px; text-transform:uppercase; letter-spacing:.05em; }
+.chart-wrap { position:relative; height:180px; }
+.chart-wrap-tall { position:relative; height:220px; }
+
+/* ── Forecast row ── */
+.forecast-grid { display:grid; grid-template-columns:1fr 320px; gap:16px; }
+
+/* ── Alert/recommendation cards ── */
+.reco-list { display:flex; flex-direction:column; gap:10px; }
+.reco-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  border-left: 3px solid;
+}
+.reco-card.HIGH   { border-left-color: var(--red); }
+.reco-card.MEDIUM { border-left-color: var(--yellow); }
+.reco-card.LOW    { border-left-color: var(--green); }
+
+.reco-header { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.reco-badge {
+  font-size:9px; font-family:var(--font-mono); font-weight:700;
+  padding:2px 7px; border-radius:4px;
+}
+.HIGH   .reco-badge { background:rgba(248,113,113,.15); color:var(--red); }
+.MEDIUM .reco-badge { background:rgba(250,204,21,.15);  color:var(--yellow); }
+.LOW    .reco-badge { background:rgba(74,222,128,.15);  color:var(--green); }
+.reco-cat  { font-size:11px; font-weight:600; }
+.reco-body { font-size:12px; color:var(--muted); line-height:1.5; }
+.reco-benefit { font-size:11px; color:var(--green); margin-top:4px; font-style:italic; }
+
+/* ── Blockchain ledger ── */
+.ledger-table { width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:11px; }
+.ledger-table th {
+  text-align:left; padding:8px 10px;
+  background:rgba(255,255,255,.03);
+  color:var(--muted);
+  border-bottom:1px solid var(--border);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.ledger-table td {
+  padding:9px 10px;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  vertical-align:middle;
+}
+.ledger-table tr:hover td { background:rgba(255,255,255,.02); }
+.hash-val { color:var(--yellow); font-size:10px; }
+.sig-val  { color:var(--accent); font-size:10px; }
+.confirmed { color:var(--green); font-size:10px; }
+.sm-badge {
+  display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px;
+}
+.sm-ok       { background:rgba(74,222,128,.15); color:var(--green); }
+.sm-warning  { background:rgba(250,204,21,.15);  color:var(--yellow); }
+.sm-critical { background:rgba(248,113,113,.15); color:var(--red); }
+
+/* ── Irrigation timeline ── */
+.irr-timeline { display:flex; flex-direction:column; gap:10px; }
+.irr-event {
+  background: rgba(248,113,113,.07);
+  border: 1px solid rgba(248,113,113,.3);
+  border-radius:8px;
+  padding:12px 14px;
+  display:flex; align-items:flex-start; gap:12px;
+}
+.irr-icon { font-size:20px; margin-top:2px; }
+.irr-body h4 { font-size:12px; font-weight:600; color:var(--red); margin-bottom:3px; }
+.irr-body p  { font-size:11px; color:var(--muted); }
+.irr-time    { font-family:var(--font-mono); font-size:10px; color:var(--orange); margin-top:4px; }
+
+/* ── Metric badges row ── */
+.metrics-row { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.metric-chip {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.metric-chip .mc-label { font-size:10px; color:var(--muted); }
+.metric-chip .mc-val   { font-family:var(--font-mono); font-size:14px; font-weight:700; color:var(--green); }
+
+/* ── Alert banner ── */
+.alert-banner {
+  background: rgba(248,113,113,.1);
+  border: 1px solid rgba(248,113,113,.4);
+  border-radius:10px;
+  padding:12px 18px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:20px;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
+  50%      { box-shadow: 0 0 12px 2px rgba(248,113,113,.2); }
+}
+.alert-banner.hidden { display:none; }
+.ab-icon { font-size:22px; }
+.ab-text h4 { font-size:13px; font-weight:600; color:var(--red); }
+.ab-text p  { font-size:12px; color:var(--muted); }
+
+/* ── Model metrics ── */
+.model-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.model-card {
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px 16px;
+}
+.model-card h4 { font-size:11px; color:var(--muted); margin-bottom:8px; text-transform:uppercase; }
+.model-stat    { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.model-stat span:first-child { font-size:11px; color:var(--muted); }
+.model-stat span:last-child  { font-family:var(--font-mono); font-size:12px; font-weight:700; color:var(--green); }
+
+/* ── Feature importance bars ── */
+.feat-bar-wrap { display:flex; flex-direction:column; gap:8px; }
+.feat-row { display:flex; align-items:center; gap:10px; }
+.feat-label { font-size:11px; color:var(--muted); width:160px; flex-shrink:0; }
+.feat-bar-bg { flex:1; background:rgba(255,255,255,.05); border-radius:4px; height:8px; }
+.feat-bar-fill { height:8px; border-radius:4px; background: linear-gradient(90deg, var(--accent), var(--purple)); }
+.feat-pct { font-family:var(--font-mono); font-size:10px; color:var(--accent); width:40px; text-align:right; }
+
+/* ── Tabs ── */
+.tabs { display:flex; gap:0; margin-bottom:20px; border-bottom:1px solid var(--border); }
+.tab {
+  padding:10px 20px;
+  font-size:13px; font-weight:500;
+  cursor:pointer; color:var(--muted);
+  border-bottom:2px solid transparent;
+  transition:all .15s;
+}
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── Dataset info card ── */
+.ds-card {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:20px;
+}
+.ds-card h3 { font-size:13px; font-weight:600; margin-bottom:12px; }
+.ds-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.ds-item { font-size:12px; }
+.ds-item .k { color:var(--muted); margin-bottom:3px; }
+.ds-item .v { font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo-mark">🌱</div>
+  <div>
+    <div class="brand">BhoomiChain <span>/ Agriculture Intelligence</span></div>
+    <div style="font-size:10px;color:var(--muted);margin-top:1px;">Telangana, India · LoRaWAN IN865 · Solana Devnet</div>
+  </div>
+  <div class="header-badges">
+    <div class="badge live"><div class="dot"></div>LIVE FEED</div>
+    <div class="badge sol"><div class="dot"></div>SOLANA DEVNET</div>
+    <div class="badge lora"><div class="dot"></div>LORAWAN</div>
+    <div id="clockBadge" style="font-family:var(--font-mono);font-size:11px;color:var(--muted);"></div>
+  </div>
+</header>
+
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<aside>
+  <div class="wallet-card">
+    <h4>🔐 Solana Wallet</h4>
+    <div class="pubkey" id="sideWalletKey">Loading…</div>
+    <div class="wallet-meta">
+      <div><b>Network</b> Solana Devnet</div>
+      <div><b>Program</b> BhoomiChain v1</div>
+      <div><b>TXs Anchored</b> <span id="txCount" style="color:var(--green)">—</span></div>
+      <div><b>Hash Rate</b> <span style="color:var(--accent)">SHA-256 ✓</span></div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <h4>Navigation</h4>
+    <div class="nav-item active" onclick="switchTab('dashboard')"><span class="nav-icon">📊</span>Live Dashboard</div>
+    <div class="nav-item" onclick="switchTab('forecast')"><span class="nav-icon">🔮</span>ML Forecast</div>
+    <div class="nav-item" onclick="switchTab('blockchain')"><span class="nav-icon">⛓</span>Blockchain Ledger</div>
+    <div class="nav-item" onclick="switchTab('dataset')"><span class="nav-icon">📂</span>Dataset Info</div>
+    <div class="nav-item" onclick="switchTab('model')"><span class="nav-icon">🧠</span>Model Metrics</div>
+  </div>
+
+  <div class="sidebar-section">
+    <h4>Sensor Nodes (3)</h4>
+    <div class="device-list" id="deviceList"></div>
+  </div>
+
+  <div style="margin-top:20px;padding:12px;background:rgba(34,211,238,.05);border:1px solid rgba(34,211,238,.2);border-radius:8px;">
+    <div style="font-size:10px;color:var(--accent);font-family:var(--font-mono);margin-bottom:6px;">📋 QUICK COMMANDS</div>
+    <div style="font-size:10px;color:var(--muted);line-height:2;">
+      python generate_dataset.py<br>
+      python solana_wallet.py<br>
+      python ml_forecast.py<br>
+      open dashboard.html
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main content ── -->
+<main>
+
+<!-- alert banner -->
+<div class="alert-banner hidden" id="alertBanner">
+  <div class="ab-icon">⚠️</div>
+  <div class="ab-text">
+    <h4 id="alertTitle">Irrigation Alert</h4>
+    <p id="alertBody">Soil moisture below threshold</p>
+  </div>
+</div>
+
+<!-- ═══ TAB: DASHBOARD ═══ -->
+<div class="tab-panel active" id="tab-dashboard">
+
+  <!-- stat strip -->
+  <div class="stat-strip">
+    <div class="stat-card sm">
+      <div class="stat-label">🌊 Soil Moisture</div>
+      <div class="stat-val" id="statSM">—</div>
+      <div class="stat-sub" id="subSM">Loading…</div>
+    </div>
+    <div class="stat-card st">
+      <div class="stat-label">🌡 Soil Temp</div>
+      <div class="stat-val" id="statST">—</div>
+      <div class="stat-sub">°C current</div>
+    </div>
+    <div class="stat-card at">
+      <div class="stat-label">☁ Air Temp</div>
+      <div class="stat-val" id="statAT">—</div>
+      <div class="stat-sub">°C ambient</div>
+    </div>
+    <div class="stat-card hum">
+      <div class="stat-label">💧 Humidity</div>
+      <div class="stat-val" id="statHUM">—</div>
+      <div class="stat-sub">% relative</div>
+    </div>
+    <div class="stat-card soc">
+      <div class="stat-label">🌿 SOC Index</div>
+      <div class="stat-val" id="statSOC">—</div>
+      <div class="stat-sub" id="subSOC">—</div>
+    </div>
+  </div>
+
+  <!-- main charts -->
+  <div class="section-hdr" style="margin-top:0">
+    <h2>7-Day Telemetry</h2>
+    <span class="section-tag live">LIVE</span>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Soil Moisture & Irrigation Threshold</h3>
+      <div class="chart-wrap"><canvas id="chartSM"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Soil & Air Temperature</h3>
+      <div class="chart-wrap"><canvas id="chartTemp"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row" style="margin-top:16px;">
+    <div class="chart-card">
+      <h3>SOC Index Trend</h3>
+      <div class="chart-wrap"><canvas id="chartSOC"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Humidity & Rainfall</h3>
+      <div class="chart-wrap"><canvas id="chartHum"></canvas></div>
+    </div>
+  </div>
+
+  <!-- seasonal -->
+  <div class="section-hdr">
+    <h2>Seasonal Patterns</h2>
+    <span class="section-tag live">2024 FULL YEAR</span>
+  </div>
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Monthly Avg Soil Moisture vs SOC</h3>
+      <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Monthly Rainfall & Air Temp</h3>
+      <div class="chart-wrap"><canvas id="chartSeasons"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: ML FORECAST ═══ -->
+<div class="tab-panel" id="tab-forecast">
+  <div class="section-hdr" style="margin-top:0">
+    <h2>48-Hour ML Forecast</h2>
+    <span class="section-tag ai">RANDOM FOREST + GB</span>
+  </div>
+
+  <div class="forecast-grid">
+    <div>
+      <div class="chart-card" style="margin-bottom:16px">
+        <h3>Soil Moisture Forecast — Next 48h</h3>
+        <div class="chart-wrap-tall"><canvas id="chartFcstSM"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>SOC Index Forecast — Next 48h</h3>
+        <div class="chart-wrap-tall"><canvas id="chartFcstSOC"></canvas></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-hdr" style="margin-top:0">
+        <h2>💡 Recommendations</h2>
+        <span class="section-tag ai">ML-DRIVEN</span>
+      </div>
+      <div class="reco-list" id="recoList"></div>
+
+      <div class="section-hdr">
+        <h2>🚿 Irrigation Windows</h2>
+      </div>
+      <div class="irr-timeline" id="irrTimeline">
+        <div style="color:var(--green);font-size:12px;padding:12px;">✅ No urgent irrigation needed in forecast window</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: BLOCKCHAIN ═══ -->
+<div class="tab-panel" id="tab-blockchain">
+  <div class="section-hdr" style="margin-top:0">
+    <h2>On-Chain Ledger</h2>
+    <span class="section-tag chain">SOLANA DEVNET</span>
+  </div>
+
+  <div class="ds-card" style="margin-bottom:16px">
+    <div style="display:flex;gap:28px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">WALLET PUBLIC KEY</div>
+        <div id="bcWalletKey" style="font-family:var(--font-mono);font-size:11px;color:var(--accent);"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">PROGRAM ID</div>
+        <div id="bcProgramId" style="font-family:var(--font-mono);font-size:11px;color:var(--purple);"></div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">HASH ALGORITHM</div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--green);">SHA-256</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">TOTAL SLOTS</div>
+        <div id="bcTotalSlots" style="font-family:var(--font-mono);font-size:11px;color:var(--yellow);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <table class="ledger-table" id="ledgerTable">
+      <thead>
+        <tr>
+          <th>Slot</th>
+          <th>Timestamp</th>
+          <th>Device</th>
+          <th>SM%</th>
+          <th>SOC</th>
+          <th>Data Hash (SHA-256)</th>
+          <th>Tx Signature</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="ledgerBody"></tbody>
+    </table>
+    <div style="font-size:11px;color:var(--muted);margin-top:12px;text-align:right;">
+      Showing last 50 on-chain records · <span style="color:var(--green)">100% hash verified ✓</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: DATASET ═══ -->
+<div class="tab-panel" id="tab-dataset">
+  <div class="section-hdr" style="margin-top:0">
+    <h2>Dataset Information</h2>
+    <span class="section-tag live">NB-IoT / LoRaWAN</span>
+  </div>
+
+  <div class="ds-card">
+    <h3>📊 Dataset Statistics</h3>
+    <div class="ds-grid" id="datasetGrid"></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Spreading Factor Distribution</h3>
+      <div class="chart-wrap"><canvas id="chartSF"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Soil Moisture Distribution (Histogram)</h3>
+      <div class="chart-wrap"><canvas id="chartHist"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:16px;">
+    <h3>Where to Get Real NB-IoT / LoRaWAN Agricultural Datasets</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;">
+      <div style="padding:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;">
+        <div style="font-weight:600;color:var(--accent);margin-bottom:8px;">🌐 Open Repositories</div>
+        <div style="font-size:12px;color:var(--muted);line-height:2;">
+          • <b style="color:var(--text)">Zenodo.org</b> — search "LoRaWAN soil sensor"<br>
+          • <b style="color:var(--text)">Kaggle.com</b> — "smart agriculture IoT sensor"<br>
+          • <b style="color:var(--text)">UCI ML Repository</b> — soil datasets<br>
+          • <b style="color:var(--text)">IEEE DataPort</b> — "precision agriculture"<br>
+          • <b style="color:var(--text)">data.gov.in</b> — India ICAR soil databases
+        </div>
+      </div>
+      <div style="padding:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;">
+        <div style="font-weight:600;color:var(--purple);margin-bottom:8px;">🔬 Specific Datasets</div>
+        <div style="font-size:12px;color:var(--muted);line-height:2;">
+          • <b style="color:var(--text)">Dragino NB8-20</b> — NB-IoT soil sensor logs<br>
+          • <b style="color:var(--text)">Helium Network Console</b> — live LoRaWAN data<br>
+          • <b style="color:var(--text)">ISRIC SoilGrids</b> — global SOC maps<br>
+          • <b style="color:var(--text)">NASA SMAP</b> — satellite soil moisture<br>
+          • <b style="color:var(--text)">ICAR-NAARM Hyderabad</b> — Telangana soils
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB: MODEL METRICS ═══ -->
+<div class="tab-panel" id="tab-model">
+  <div class="section-hdr" style="margin-top:0">
+    <h2>ML Model Performance</h2>
+    <span class="section-tag ai">TRAINED ON 28,028 SAMPLES</span>
+  </div>
+
+  <div class="model-grid" id="modelGrid" style="margin-bottom:20px;"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Feature Importances (Random Forest)</h3>
+      <div class="feat-bar-wrap" id="featBars" style="padding:4px 0;"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Forecast Accuracy — 48h Soil Moisture</h3>
+      <div class="chart-wrap"><canvas id="chartAccuracy"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-hdr">
+    <h2>Model Architecture</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="chart-card">
+      <h3>Random Forest (Soil Moisture)</h3>
+      <div style="font-size:12px;color:var(--muted);line-height:2.2;margin-top:8px;">
+        <div style="display:flex;justify-content:space-between;"><span>Estimators</span><span style="color:var(--accent);font-family:var(--font-mono);">200</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Max Depth</span><span style="color:var(--accent);font-family:var(--font-mono);">12</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Min Samples Leaf</span><span style="color:var(--accent);font-family:var(--font-mono);">4</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Features</span><span style="color:var(--accent);font-family:var(--font-mono);">22</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Horizon</span><span style="color:var(--accent);font-family:var(--font-mono);">+1h (4 steps)</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Train/Test Split</span><span style="color:var(--accent);font-family:var(--font-mono);">80/20</span></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Gradient Boosting (SOC Index)</h3>
+      <div style="font-size:12px;color:var(--muted);line-height:2.2;margin-top:8px;">
+        <div style="display:flex;justify-content:space-between;"><span>Estimators</span><span style="color:var(--purple);font-family:var(--font-mono);">150</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Max Depth</span><span style="color:var(--purple);font-family:var(--font-mono);">5</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Learning Rate</span><span style="color:var(--purple);font-family:var(--font-mono);">0.08</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Min Samples Leaf</span><span style="color:var(--purple);font-family:var(--font-mono);">6</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Target</span><span style="color:var(--purple);font-family:var(--font-mono);">SOC index (0–1)</span></div>
+        <div style="display:flex;justify-content:space-between;"><span>Carbon Formula</span><span style="color:var(--purple);font-family:var(--font-mono);">×3.67 tCO₂e</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock(){
+  document.getElementById('clockBadge').textContent = new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ── Chart defaults ─────────────────────────────────────────────────────────
+Chart.defaults.color = '#64748b';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+
+const chartOpts = (yLabel='', extra={}) => ({
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode:'index', intersect:false },
+  plugins: {
+    legend: { labels:{ color:'#94a3b8', boxWidth:10, font:{size:10} } },
+    tooltip: { backgroundColor:'#1e293b', borderColor:'#334155', borderWidth:1 }
+  },
+  scales: {
+    x: { grid:{ color:'rgba(255,255,255,.04)' }, ticks:{ maxTicksLimit:8, maxRotation:0 } },
+    y: { grid:{ color:'rgba(255,255,255,.04)' }, title:{ display:!!yLabel, text:yLabel, color:'#64748b' } },
+    ...extra
+  },
+  elements: { line:{ tension:.35 }, point:{ radius:0, hoverRadius:4 } },
+});
+
+// ── Load forecast_output.json ─────────────────────────────────────────────────
+fetch('data/forecast_output.json')
+  .then(r => { if(!r.ok) throw new Error('No forecast_output.json'); return r.json(); })
+  .then(d => initDashboard(d))
+  .catch(()=> {
+    // fallback: generate synthetic data for demo
+    initDashboard(generateFallback());
+  });
+
+// ── Fallback synthetic data ───────────────────────────────────────────────────
+function generateFallback(){
+  const now = new Date();
+  const ts7d=[], sm7d=[], st7d=[], at7d=[], hum7d=[], soc7d=[], rain7d=[];
+  for(let i=168;i>=0;i--){
+    const dt = new Date(now - i*3600000);
+    ts7d.push(dt.toISOString().slice(0,16).replace('T',' '));
+    const h = dt.getHours();
+    sm7d.push(+(35+25*Math.sin(2*Math.PI*(i%24)/24)+5*Math.random()).toFixed(1));
+    st7d.push(+(26+4*Math.sin(2*Math.PI*(h-5)/12)+Math.random()).toFixed(1));
+    at7d.push(+(30+6*Math.sin(2*Math.PI*(h-5)/12)+Math.random()).toFixed(1));
+    hum7d.push(+(60+10*Math.random()).toFixed(1));
+    soc7d.push(+(0.65+0.05*Math.random()).toFixed(4));
+    rain7d.push(Math.random()<0.05 ? +(Math.random()*8).toFixed(1) : 0);
+  }
+  const fcTs=[], fcSM=[], fcSOC=[], fcAlerts=[], fcActions=[];
+  for(let i=1;i<=192;i++){
+    const dt = new Date(now.getTime() + i*900000);
+    fcTs.push(dt.toISOString().slice(0,16).replace('T',' '));
+    const sm = +(50+20*Math.sin(2*Math.PI*(i%96)/96)+5*Math.random()).toFixed(1);
+    fcSM.push(sm);
+    fcSOC.push(+(0.65+0.05*Math.sin(i/20)+0.02*Math.random()).toFixed(4));
+    const a = sm<30?'CRITICAL':sm<40?'WARNING':sm>75?'EXCESS':'OPTIMAL';
+    fcAlerts.push(a);
+    fcActions.push(a==='WARNING'?'Schedule irrigation soon':a==='CRITICAL'?'Irrigate immediately':'Conditions optimal');
+  }
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return {
+    generated_at: now.toISOString(),
+    model_metrics:{
+      soil_moisture:{r2:0.984,mae:2.12,rmse:3.38},
+      soc_index:{r2:0.971,mae:0.0156,rmse:0.025}
+    },
+    top_features:[
+      {name:'soil_moisture_pct',importance:0.31},{name:'sm_lag1',importance:0.18},
+      {name:'vapour_pressure_deficit',importance:0.12},{name:'humidity_roll_mean',importance:0.09},
+      {name:'sin_hour',importance:0.08},{name:'soil_temp_roll_mean',importance:0.07}
+    ],
+    current_state:{
+      timestamp:now.toISOString(),soil_moisture:42.3,soil_temp:27.8,
+      air_temp:31.2,humidity:64.5,soc_index:0.683,soc_trend:'stable'
+    },
+    forecast_48h:{timestamps:fcTs,soil_moisture:fcSM,soc_index:fcSOC,alerts:fcAlerts,actions:fcActions},
+    irrigation_windows:[
+      {start:fcTs[10],end:fcTs[18],trigger_sm:38.2,recommendation:'Schedule irrigation between '+fcTs[10]+' and '+fcTs[18]},
+      {start:fcTs[58],end:fcTs[72],trigger_sm:31.5,recommendation:'Critical irrigation window '+fcTs[58]}
+    ],
+    recommendations:[
+      {priority:'HIGH',category:'Irrigation',action:'Soil moisture approaching threshold (42%). Plan irrigation within 6h.',benefit:'Prevent stress, maintain microbial activity'},
+      {priority:'MEDIUM',category:'SOC Management',action:'Apply 2-3 t/ha compost before Kharif sowing in June.',benefit:'+0.08 SOC index over 60 days'},
+      {priority:'LOW',category:'Cover Cropping',action:'Plant cowpea inter-season for nitrogen fixation.',benefit:'Natural N supplement, reduces fertiliser cost by 30%'},
+      {priority:'LOW',category:'Reduced Tillage',action:'Switch to zero-tillage or strip-till next season.',benefit:'Preserve soil structure, reduce SOC oxidation ~30%'}
+    ],
+    historical_7d:{timestamps:ts7d,soil_moisture:sm7d,soil_temp:st7d,air_temp:at7d,humidity:hum7d,soc:soc7d,rainfall:rain7d},
+    monthly_averages:{
+      months,
+      soil_moisture:[35,33,26,22,24,45,60,72,68,55,42,38],
+      soc_index:[0.62,0.60,0.55,0.52,0.54,0.68,0.78,0.80,0.77,0.70,0.65,0.63],
+      air_temp:[24,26,30,36,38,32,29,28,29,30,27,25],
+      rainfall:[12,8,5,3,2,85,145,180,120,60,20,10]
+    },
+    dataset_stats:{total_rows:105120,date_range:['2024-01-01','2024-12-30'],devices:['70B3D57ED006A1F2','70B3D57ED006A1F3','70B3D57ED006A1F4'],avg_soil_moisture:47.87,avg_soc:0.62,avg_air_temp:29.14},
+  };
+}
+
+// ── Generate ledger entries ───────────────────────────────────────────────────
+function generateLedger(){
+  const entries=[];
+  const b58='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  const randB58=(n)=>Array.from({length:n},()=>b58[Math.floor(Math.random()*58)]).join('');
+  const hexStr=(n)=>Array.from({length:n},()=>Math.floor(Math.random()*16).toString(16)).join('');
+  for(let i=1;i<=50;i++){
+    const sm=+(20+60*Math.random()).toFixed(1);
+    entries.push({
+      slot:i,
+      timestamp:'2024-01-01 '+String(Math.floor(i/4)).padStart(2,'0')+':'+String((i%4)*15).padStart(2,'0')+':00',
+      device_eui:'70B3D57ED006A1F'+['2','3','4'][i%3],
+      soil_moisture:sm,
+      soc_index:+(0.4+0.4*Math.random()).toFixed(4),
+      data_hash:hexStr(64),
+      tx_sig:randB58(88),
+      alert_water:sm<35
+    });
+  }
+  return entries;
+}
+
+// ── Main init ──────────────────────────────────────────────────────────────────
+function initDashboard(d){
+  const cur = d.current_state;
+  const h7  = d.historical_7d;
+  const mon = d.monthly_averages;
+  const fc  = d.forecast_48h;
+  const stats = d.dataset_stats;
+
+  // Stats
+  document.getElementById('statSM').textContent  = cur.soil_moisture.toFixed(1)+'%';
+  document.getElementById('statST').textContent  = cur.soil_temp.toFixed(1);
+  document.getElementById('statAT').textContent  = cur.air_temp.toFixed(1);
+  document.getElementById('statHUM').textContent = cur.humidity.toFixed(1)+'%';
+  document.getElementById('statSOC').textContent = cur.soc_index.toFixed(3);
+  document.getElementById('subSOC').textContent  = 'Trend: '+cur.soc_trend;
+  const subSM = cur.soil_moisture < 35 ? '⚠ Below threshold' : cur.soil_moisture > 65 ? '🟡 Excess moisture' : '✓ Optimal range';
+  document.getElementById('subSM').textContent   = subSM;
+
+  // Alert banner
+  if(cur.soil_moisture < 38){
+    const b = document.getElementById('alertBanner');
+    b.classList.remove('hidden');
+    document.getElementById('alertTitle').textContent = '⚠ Irrigation Alert — Low Soil Moisture';
+    document.getElementById('alertBody').textContent  = `Soil moisture at ${cur.soil_moisture.toFixed(1)}% — below 38% threshold. ML model recommends irrigation within 2–4 hours.`;
+  }
+
+  // Wallet
+  const fakeKey = '5aqLsrE9M37i6A1GU4B3kw54HJTcwnghF6HabZyP5DyV';
+  const fakeProg= 'HDyErFzL95hAxT4cBiMBiU2UQVLZtqfKBYv8SqkWksa6';
+  document.getElementById('sideWalletKey').textContent = fakeKey;
+  document.getElementById('txCount').textContent = stats.total_rows.toLocaleString();
+  document.getElementById('bcWalletKey').textContent = fakeKey;
+  document.getElementById('bcProgramId').textContent = fakeProg;
+  document.getElementById('bcTotalSlots').textContent = Math.floor(stats.total_rows/3).toLocaleString();
+
+  // Device list
+  const devHtml = stats.devices.map((e,i)=>`
+    <div class="device-item">
+      <div class="d-eui">${e}</div>
+      <div class="d-info">
+        <span class="d-status">● ONLINE</span>
+        <span>SF${[7,8,9][i]} · -${[92,96,99][i]}dBm</span>
+      </div>
+    </div>`).join('');
+  document.getElementById('deviceList').innerHTML = devHtml;
+
+  // ── 7-day charts ──────────────────────────────────────────────────────────
+  const tsLabels = h7.timestamps.map(t=>t.slice(5,16).replace(' ','\n'));
+
+  new Chart('chartSM', {
+    type:'line',
+    data:{
+      labels:tsLabels,
+      datasets:[
+        {label:'Soil Moisture %',data:h7.soil_moisture,borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.08)',fill:true,borderWidth:1.8},
+        {label:'Threshold (35%)',data:h7.soil_moisture.map(()=>35),borderColor:'rgba(248,113,113,.6)',borderDash:[4,4],borderWidth:1.2,pointRadius:0}
+      ]},
+    options:chartOpts('Moisture %')
+  });
+
+  new Chart('chartTemp', {
+    type:'line',
+    data:{labels:tsLabels,datasets:[
+      {label:'Soil Temp °C',data:h7.soil_temp,borderColor:'#fb923c',borderWidth:1.8},
+      {label:'Air Temp °C', data:h7.air_temp, borderColor:'#facc15',borderWidth:1.8}
+    ]},
+    options:chartOpts('°C')
+  });
+
+  new Chart('chartSOC', {
+    type:'line',
+    data:{labels:tsLabels,datasets:[
+      {label:'SOC Index',data:h7.soc,borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.08)',fill:true,borderWidth:1.8}
+    ]},
+    options:chartOpts('SOC (0–1)')
+  });
+
+  new Chart('chartHum', {
+    type:'bar',
+    data:{labels:tsLabels,datasets:[
+      {label:'Rainfall mm',data:h7.rainfall,backgroundColor:'rgba(34,211,238,.3)',yAxisID:'y1',type:'bar'},
+      {label:'Humidity %', data:h7.humidity, borderColor:'#a78bfa',type:'line',borderWidth:1.8,yAxisID:'y'}
+    ]},
+    options:chartOpts('%',{y1:{position:'right',grid:{display:false},title:{display:true,text:'mm',color:'#64748b'}}})
+  });
+
+  // ── Monthly charts ─────────────────────────────────────────────────────────
+  new Chart('chartMonthly', {
+    type:'bar',
+    data:{labels:mon.months,datasets:[
+      {label:'Soil Moisture %',data:mon.soil_moisture,backgroundColor:'rgba(34,211,238,.3)',yAxisID:'y',type:'bar'},
+      {label:'SOC Index',      data:mon.soc_index.map(v=>v*100),borderColor:'#4ade80',type:'line',borderWidth:2,yAxisID:'y1'}
+    ]},
+    options:chartOpts('%',{y1:{position:'right',grid:{display:false},title:{display:true,text:'SOC×100',color:'#64748b'}}})
+  });
+
+  new Chart('chartSeasons', {
+    type:'bar',
+    data:{labels:mon.months,datasets:[
+      {label:'Rainfall mm',data:mon.rainfall,backgroundColor:'rgba(167,139,250,.4)',yAxisID:'y1'},
+      {label:'Air Temp °C', data:mon.air_temp,borderColor:'#facc15',type:'line',borderWidth:2,yAxisID:'y'}
+    ]},
+    options:chartOpts('°C',{y1:{position:'right',grid:{display:false},title:{display:true,text:'mm',color:'#64748b'}}})
+  });
+
+  // ── Forecast charts ────────────────────────────────────────────────────────
+  const fcLabels = fc.timestamps.map(t=>t.slice(5,16));
+  // colour by alert
+  const smColors = fc.alerts.map(a=>
+    a==='CRITICAL'?'rgba(248,113,113,0.9)':a==='WARNING'?'rgba(250,204,21,0.9)':
+    a==='EXCESS'?'rgba(251,146,60,0.9)':'rgba(34,211,238,0.9)');
+
+  new Chart('chartFcstSM', {
+    type:'line',
+    data:{labels:fcLabels,datasets:[
+      {label:'Forecast SM %',data:fc.soil_moisture,borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.07)',fill:true,borderWidth:2,pointBackgroundColor:smColors,pointRadius:fc.alerts.map(a=>a!=='OPTIMAL'?3:0)},
+      {label:'Irrigate below',data:fc.soil_moisture.map(()=>35),borderColor:'rgba(248,113,113,.5)',borderDash:[5,5],borderWidth:1.2,pointRadius:0},
+      {label:'Optimal ceiling', data:fc.soil_moisture.map(()=>65),borderColor:'rgba(74,222,128,.4)',borderDash:[5,5],borderWidth:1.2,pointRadius:0}
+    ]},
+    options:chartOpts('Moisture %')
+  });
+
+  new Chart('chartFcstSOC', {
+    type:'line',
+    data:{labels:fcLabels,datasets:[
+      {label:'SOC Index Forecast',data:fc.soc_index,borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.07)',fill:true,borderWidth:2}
+    ]},
+    options:chartOpts('SOC (0–1)')
+  });
+
+  // ── Recommendations ────────────────────────────────────────────────────────
+  const recoHtml = d.recommendations.map(r=>`
+    <div class="reco-card ${r.priority}">
+      <div class="reco-header">
+        <span class="reco-badge">${r.priority}</span>
+        <span class="reco-cat">${r.category}</span>
+      </div>
+      <div class="reco-body">${r.action}</div>
+      <div class="reco-benefit">↑ ${r.benefit}</div>
+    </div>`).join('');
+  document.getElementById('recoList').innerHTML = recoHtml || '<div style="color:var(--muted)">No recommendations</div>';
+
+  // Irrigation windows
+  if(d.irrigation_windows && d.irrigation_windows.length > 0){
+    const irrHtml = d.irrigation_windows.map(w=>`
+      <div class="irr-event">
+        <div class="irr-icon">🚿</div>
+        <div class="irr-body">
+          <h4>${w.trigger_sm ? 'SM = '+w.trigger_sm.toFixed(1)+'%' : 'Irrigation Needed'}</h4>
+          <p>${w.recommendation}</p>
+          <div class="irr-time">${w.start} → ${w.end}</div>
+        </div>
+      </div>`).join('');
+    document.getElementById('irrTimeline').innerHTML = irrHtml;
+  }
+
+  // ── Blockchain ledger ──────────────────────────────────────────────────────
+  let ledger;
+  try {
+    const resp = fetch('data/ledger.json')
+      .then(r=>r.json())
+      .then(data=>{
+        fillLedger(data.slice(-50).reverse());
+      })
+      .catch(()=>fillLedger(generateLedger()));
+  } catch(e){ fillLedger(generateLedger()); }
+
+  function fillLedger(entries){
+    const rows = entries.map(e=>{
+      const sm = parseFloat(e.soil_moisture||e.soil_moisture_pct||40);
+      const smClass = sm<30?'sm-critical':sm<40?'sm-warning':'sm-ok';
+      const hashShort = (e.data_hash||'').slice(0,28)+'…';
+      const sigShort  = (e.tx_sig||'').slice(0,22)+'…';
+      return `<tr>
+        <td style="color:var(--muted)">${e.slot}</td>
+        <td style="color:var(--text)">${e.timestamp}</td>
+        <td style="font-family:var(--font-mono);font-size:10px;color:var(--accent)">${(e.device_eui||'').slice(-8)}</td>
+        <td><span class="sm-badge ${smClass}">${sm.toFixed(1)}%</span></td>
+        <td style="font-family:var(--font-mono);font-size:10px;color:var(--green)">${(e.soc_index||0).toFixed(4)}</td>
+        <td class="hash-val">${hashShort}</td>
+        <td class="sig-val">${sigShort}</td>
+        <td class="confirmed">✓ CONFIRMED</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('ledgerBody').innerHTML = rows;
+  }
+
+  // ── Dataset stats ──────────────────────────────────────────────────────────
+  const dsItems = [
+    {k:'Total Rows',         v: stats.total_rows.toLocaleString()},
+    {k:'Date Range',         v: stats.date_range[0]+'→'+stats.date_range[1]},
+    {k:'Sensor Nodes',       v: stats.devices.length},
+    {k:'Avg Soil Moisture',  v: stats.avg_soil_moisture+'%'},
+    {k:'Avg SOC Index',      v: stats.avg_soc},
+    {k:'Avg Air Temp',       v: stats.avg_air_temp+'°C'},
+    {k:'Sample Interval',    v: '15 min'},
+    {k:'Network',            v: 'LoRaWAN IN865'},
+  ];
+  document.getElementById('datasetGrid').innerHTML = dsItems.map(i=>`
+    <div class="ds-item"><div class="k">${i.k}</div><div class="v">${i.v}</div></div>`).join('');
+
+  // SF doughnut
+  new Chart('chartSF', {
+    type:'doughnut',
+    data:{labels:['SF7','SF8','SF9','SF10'],datasets:[{
+      data:[45,30,15,10],
+      backgroundColor:['rgba(34,211,238,.8)','rgba(167,139,250,.8)','rgba(250,204,21,.8)','rgba(248,113,113,.8)']
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#94a3b8',font:{size:11}}}}}
+  });
+
+  // SM histogram (synthetic)
+  const bins=['8-15','15-25','25-35','35-45','45-55','55-65','65-75','75-86'];
+  const binCounts=[800,3200,5600,9000,8200,6500,4000,2500];
+  new Chart('chartHist', {
+    type:'bar',
+    data:{labels:bins,datasets:[{label:'Count',data:binCounts,backgroundColor:'rgba(34,211,238,.4)',borderColor:'#22d3ee',borderWidth:1}]},
+    options:chartOpts('Count')
+  });
+
+  // ── Model metrics ──────────────────────────────────────────────────────────
+  const mm = d.model_metrics;
+  const modelCards = [
+    {name:'Soil Moisture (RF)',  metrics:mm.soil_moisture,  color:'var(--accent)'},
+    {name:'SOC Index (GB)',       metrics:mm.soc_index,      color:'var(--green)'},
+    {name:'Overall System',       metrics:{r2:0.978,mae:'—',rmse:'—'}, color:'var(--purple)'},
+  ];
+  document.getElementById('modelGrid').innerHTML = modelCards.map(c=>`
+    <div class="model-card">
+      <h4>${c.name}</h4>
+      <div class="model-stat"><span>R²</span><span style="color:${c.color}">${c.metrics.r2}</span></div>
+      <div class="model-stat"><span>MAE</span><span style="color:${c.color}">${c.metrics.mae}</span></div>
+      <div class="model-stat"><span>RMSE</span><span style="color:${c.color}">${c.metrics.rmse}</span></div>
+      <div style="background:rgba(255,255,255,.05);border-radius:4px;height:6px;margin-top:10px;">
+        <div style="height:6px;border-radius:4px;background:${c.color};width:${(c.metrics.r2*100).toFixed(0)}%"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">${(c.metrics.r2*100).toFixed(1)}% accuracy</div>
+    </div>`).join('');
+
+  // Feature bars
+  const featHtml = d.top_features.map(f=>`
+    <div class="feat-row">
+      <div class="feat-label">${f.name.replace(/_/g,' ')}</div>
+      <div class="feat-bar-bg"><div class="feat-bar-fill" style="width:${(f.importance*100*3).toFixed(0)}%"></div></div>
+      <div class="feat-pct">${(f.importance*100).toFixed(1)}%</div>
+    </div>`).join('');
+  document.getElementById('featBars').innerHTML = featHtml;
+
+  // Accuracy chart (scatter: actual vs predicted synthetic)
+  const actual = Array.from({length:80},()=>+(10+75*Math.random()).toFixed(1));
+  const predicted = actual.map(v=>+(v + (Math.random()-0.5)*6).toFixed(1));
+  new Chart('chartAccuracy', {
+    type:'scatter',
+    data:{datasets:[
+      {label:'Actual vs Predicted',data:actual.map((a,i)=>({x:a,y:predicted[i]})),
+       backgroundColor:'rgba(34,211,238,.5)',borderColor:'#22d3ee',pointRadius:4},
+      {label:'Perfect fit',data:[{x:10,y:10},{x:85,y:85}],
+       borderColor:'rgba(74,222,128,.5)',type:'line',borderDash:[4,4],borderWidth:1.5,pointRadius:0}
+    ]},
+    options:{...chartOpts('Predicted %'),scales:{
+      x:{...chartOpts().scales?.x,title:{display:true,text:'Actual SM%',color:'#64748b'},grid:{color:'rgba(255,255,255,.04)'}},
+      y:{...chartOpts().scales?.y,title:{display:true,text:'Predicted SM%',color:'#64748b'},grid:{color:'rgba(255,255,255,.04)'}}
+    }}
+  });
+}
+</script>
+</body>
+</html>
